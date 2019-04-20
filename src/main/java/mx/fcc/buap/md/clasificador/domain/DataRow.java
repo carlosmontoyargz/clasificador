@@ -15,28 +15,33 @@ import java.util.Arrays;
 @Getter
 public class DataRow
 {
-	private final BigDecimal[] atributes;
+	private final BigDecimal[] columns;
 
-	public DataRow minMax(BigDecimal[] minA, BigDecimal[] maxA, BigDecimal newMinA, BigDecimal newMaxA)
+	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = atributes[i]
-					.subtract(minA[i])
-					.divide(maxA[i].subtract(minA[i]), RoundingMode.HALF_UP)
-					.multiply(newMaxA.subtract(newMinA))
-					.add(newMinA);
+			normalized[i] = columns[i]
+					.subtract(minRow.columns[i])
+					.divide
+					(
+						maxRow.columns[i]
+								.subtract(minRow.columns[i]),
+						RoundingMode.HALF_UP
+					)
+					.multiply(newMax.subtract(newMin))
+					.add(newMin);
 
 		return new DataRow(normalized);
 	}
 
-	public DataRow zScore(BigDecimal[] avg, BigDecimal[] stddev)
+	public DataRow zScore(DataRow avg, DataRow stddev)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = atributes[i]
-					.subtract(avg[i])
-					.divide(stddev[i], RoundingMode.HALF_UP);
+			normalized[i] = columns[i]
+					.subtract(avg.columns[i])
+					.divide(stddev.columns[i], RoundingMode.HALF_UP);
 
 		return new DataRow(normalized);
 	}
@@ -45,17 +50,17 @@ public class DataRow
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = atributes[i].movePointLeft(j[i]);
+			normalized[i] = columns[i].movePointLeft(j[i]);
 
 		return new DataRow(normalized);
 	}
 
-	public BigDecimal get(int i) { return atributes[i]; }
+	public BigDecimal get(int i) { return columns[i]; }
 
-	public void set(int i, BigDecimal n) { atributes[i] = n; }
+	public void set(int i, BigDecimal n) { columns[i] = n; }
 
-	public int size() { return atributes.length; }
+	public int size() { return columns.length; }
 
 	@Override
-	public String toString() { return Arrays.toString(atributes); }
+	public String toString() { return Arrays.toString(columns); }
 }

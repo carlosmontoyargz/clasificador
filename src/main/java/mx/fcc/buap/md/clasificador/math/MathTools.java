@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador.service;
+package mx.fcc.buap.md.clasificador.math;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,16 +23,5 @@ public class MathTools
 
 		}
 		return x1;
-	}
-
-	public static int tenPower(BigDecimal n)
-	{
-		int j = 0;
-		while (n.compareTo(BigDecimal.ONE) > 0)
-		{
-			j++;
-			n = n.movePointLeft(1);
-		}
-		return j;
 	}
 }

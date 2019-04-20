@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 @Log4j2
 public class ClusteringService
 {
-	private final CsvReader reader;
+	private final CsvService reader;
 
 	public void kmeans(String filename)
 	{
@@ -31,10 +31,16 @@ public class ClusteringService
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
 		}
 
-		log.info("Original");
+		log.info("------------------- Original ------------------------------");
 		dataSet.forEach(log::info);
 
-		log.info("min max");
+		log.info("------------------- min-max ---------------------------------");
 		dataSet.minMax(BigDecimal.ZERO, BigDecimal.ONE).forEach(log::info);
+
+		log.info("------------------- zScore ---------------------------------");
+		dataSet.zScore().forEach(log::info);
+
+		log.info("------------------- Decimal Scaling ---------------------------------");
+		dataSet.decimalScaling().forEach(log::info);
 	}
 }

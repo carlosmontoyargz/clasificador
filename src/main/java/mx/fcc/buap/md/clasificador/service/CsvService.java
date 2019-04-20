@@ -19,7 +19,7 @@ import java.util.Arrays;
  */
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class CsvReader
+public class CsvService
 {
 	private final StorageService storageService;
 	private static final String separator = ",";
