@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 
+import static java.math.BigDecimal.ZERO;
+
 /**
  * @author Carlos Montoya
  * @since 14/03/2019
@@ -16,6 +18,12 @@ import java.util.Arrays;
 public class DataRow
 {
 	private final BigDecimal[] columns;
+
+	public int size() { return columns.length; }
+
+	public BigDecimal get(int i) { return columns[i]; }
+
+	public void set(int i, BigDecimal n) { columns[i] = n; }
 
 	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax)
 	{
@@ -39,10 +47,10 @@ public class DataRow
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = columns[i]
-					.subtract(avg.columns[i])
-					.divide(stddev.columns[i], RoundingMode.HALF_UP);
-
+			normalized[i] = ZERO.equals(stddev.columns[i]) ? columns[i] :
+					columns[i]
+							.subtract(avg.columns[i])
+							.divide(stddev.columns[i], RoundingMode.HALF_UP);
 		return new DataRow(normalized);
 	}
 
@@ -54,12 +62,6 @@ public class DataRow
 
 		return new DataRow(normalized);
 	}
-
-	public BigDecimal get(int i) { return columns[i]; }
-
-	public void set(int i, BigDecimal n) { columns[i] = n; }
-
-	public int size() { return columns.length; }
 
 	@Override
 	public String toString() { return Arrays.toString(columns); }

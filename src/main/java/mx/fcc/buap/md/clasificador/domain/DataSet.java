@@ -22,29 +22,29 @@ import java.util.stream.Stream;
 public class DataSet implements Iterable<DataRow>
 {
 	private List<DataRow> rows;
+	private int[] types;
 	private int columnSize;
 
-	public DataSet() { rows = new ArrayList<>(); }
+	public DataSet(int rowSize, int columnSize, int[] types)
+	{
+		this.rows = new ArrayList<>(rowSize);
+		this.types = types;
+		this.columnSize = columnSize;
+	}
 
-	private DataSet(List<DataRow> rows)
+	private DataSet(List<DataRow> rows, int[] types)
 	{
 		this.rows = rows;
+		this.types = types;
 		if (rows.size() > 0) columnSize = rows.get(0).size();
 	}
 
-	public void add(DataRow i)
+	public void add(DataRow r)
 	{
-		if (rows.size() > 0)
-		{
-			if (i.size() == columnSize) rows.add(i);
-
-			else log.error("La instancia tiene un numero incorrecto de atributos {}", i);
-		}
+		if (r.size() == columnSize)
+			rows.add(r);
 		else
-		{
-			columnSize = i.size();
-			rows.add(i);
-		}
+			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
 
 	public DataSet minMax(BigDecimal newMin, BigDecimal newMax)
@@ -56,8 +56,8 @@ public class DataSet implements Iterable<DataRow>
 		log.debug("maxA: {}", maxRow);
 
 		return new DataSet(rows.stream()
-				.map(dataRow -> dataRow.minmax(minRow, maxRow, newMin, newMax))
-				.collect(Collectors.toList()));
+				.map(row -> row.minmax(minRow, maxRow, newMin, newMax))
+				.collect(Collectors.toList()), types);
 	}
 
 	private DataRow getMinRow()
@@ -87,8 +87,8 @@ public class DataSet implements Iterable<DataRow>
 		log.debug("standard deviation: {}", stddvtRow);
 
 		return new DataSet(rows.stream()
-				.map(dataRow -> dataRow.zScore(averageRow, stddvtRow))
-				.collect(Collectors.toList()));
+				.map(row -> row.zScore(averageRow, stddvtRow))
+				.collect(Collectors.toList()), types);
 	}
 
 	private DataRow getAverageRow()
@@ -126,8 +126,8 @@ public class DataSet implements Iterable<DataRow>
 		log.debug("Positions to move: {}", Arrays.toString(tenPowers));
 
 		return new DataSet(rows.stream()
-				.map(dataRow -> dataRow.decimalScaling(tenPowers))
-				.collect(Collectors.toList()));
+				.map(row -> row.decimalScaling(tenPowers))
+				.collect(Collectors.toList()), types);
 	}
 
 	private DataRow getAbsoluteMaxRow()

@@ -26,11 +26,24 @@ public class CsvService
 
 	public DataSet read(String filename) throws IOException
 	{
-		DataSet dataSet = new DataSet();
+		DataSet dataSet;
 		try (BufferedReader br = new BufferedReader
 				(new FileReader(storageService.load(filename).toFile())))
 		{
 			String line;
+			int rows = 0, columns = 0;
+			int[] types = null;
+			if ((line = br.readLine()) != null) rows = Integer.valueOf(line);
+			if ((line = br.readLine()) != null) columns = Integer.valueOf(line);
+			if ((line = br.readLine()) != null)
+			{
+				types = Arrays.stream(line.split(separator))
+						.mapToInt(Integer::valueOf)
+						.toArray();
+			}
+
+			dataSet = new DataSet(rows, columns, types);
+
 			while ((line = br.readLine()) != null)
 				dataSet.add
 				(
