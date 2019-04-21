@@ -44,13 +44,12 @@ public class DataSetService
 
 		DataSet dataSet = new DataSet(types, rows, columns);
 		while (lineIterator.hasNext())
-			dataSet.add(
-					new DataRow(
-							types,
-							Arrays
-									.stream(lineIterator.next().split(separator))
-									.map(this::convert)
-									.toArray(BigDecimal[]::new)));
+			dataSet.add(new DataRow(
+					dataSet, // TODO
+					Arrays
+							.stream(lineIterator.next().split(separator))
+							.map(this::convert)
+							.toArray(BigDecimal[]::new)));
 		return dataSet;
 	}
 

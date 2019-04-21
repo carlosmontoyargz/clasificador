@@ -16,15 +16,15 @@ import static java.math.BigDecimal.ZERO;
 public class DataRow
 {
 	@Getter private int id;
-	@Getter private final AttributeType types;
+	private final DataSet dataSet;
 	private final BigDecimal[] attributes;
 
 	private static final AtomicInteger counter = new AtomicInteger(0);
 
-	public DataRow(AttributeType types, BigDecimal[] attributes)
+	public DataRow(DataSet dataSet, BigDecimal[] attributes)
 	{
-		id = counter.incrementAndGet();
-		this.types = types;
+		this.id = counter.incrementAndGet();
+		this.dataSet = dataSet;
 		this.attributes = attributes;
 	}
 
@@ -36,12 +36,7 @@ public class DataRow
 	 * Normaliza este DataRow mediante el metodo min-max, a partir de los parametros especificados,
 	 * y retorna el resultado en un DataRow nuevo.
 	 *
-	 * @param minRow
-	 * @param maxRow
-	 * @param newMin
-	 * @param newMax
-	 * @param scale
-	 * @return
+	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
 	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int scale)
 	{
@@ -50,7 +45,7 @@ public class DataRow
 		for (int i = 0; i < normalized.length; i++)
 		{
 			BigDecimal diffMinMax = maxRow.attributes[i].subtract(minRow.attributes[i]);
-			normalized[i] = types.isNominal(i) ? attributes[i] :
+			normalized[i] = dataSet.isNominal(i) ? attributes[i] :
 					attributes[i]
 							.subtract(minRow.attributes[i])
 							.divide(diffMinMax, scale, RoundingMode.HALF_UP)
@@ -59,33 +54,50 @@ public class DataRow
 							.stripTrailingZeros();
 		}
 
-		return new DataRow(types, normalized);
+		return new DataRow(dataSet, normalized);
 	}
 
+	/**
+	 * Normaliza este DataRow mediante el metodo z-score, a partir de los parametros especificados,
+	 * y retorna el resultado en un DataRow nuevo.
+	 *
+	 * @return Un DataRow nuevo con el resultado de la normalizacion
+	 */
 	public DataRow zScore(DataRow avg, DataRow stddev, int scale)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = types.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
+			normalized[i] = dataSet.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
 					attributes[i]
 							.subtract(avg.attributes[i])
 							.divide(stddev.attributes[i], scale, RoundingMode.HALF_UP)
 							.stripTrailingZeros();
-		return new DataRow(types, normalized);
+
+		return new DataRow(dataSet, normalized);
 	}
 
+	/**
+	 * Normaliza este DataRow mediante el metodo decimal-scaling, a partir de los parametros especificados,
+	 * y retorna el resultado en un DataRow nuevo.
+	 *
+	 * @return Un DataRow nuevo con el resultado de la normalizacion
+	 */
 	public DataRow decimalScaling(int[] j)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = types.isNominal(i) ? attributes[i] :
+			normalized[i] = dataSet.isNominal(i) ? attributes[i] :
 					attributes[i]
 							.movePointLeft(j[i])
 							.stripTrailingZeros();;
 
-		return new DataRow(types, normalized);
+		return new DataRow(dataSet, normalized);
 	}
 
+	/**
+	 * Retorna el numero de atributos de este DataRow
+	 * @return el numero de atributos de este DataRow
+	 */
 	public int size() { return attributes.length; }
 
 	@Override

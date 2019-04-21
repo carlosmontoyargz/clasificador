@@ -24,22 +24,22 @@ import static java.math.BigDecimal.ZERO;
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
-	@Getter private final AttributeType types;
+	@Getter private final AttributeType attributeType;
 	@Getter private final int columnSize;
 	private final List<DataRow> rows;
 
 	private static final int MAX_SCALE = 25;
 
-	public DataSet(AttributeType types, int rowSize, int columnSize)
+	public DataSet(AttributeType type, int rowSize, int columnSize)
 	{
-		this.types = types;
+		this.attributeType = type;
 		this.columnSize = columnSize;
 		this.rows = new ArrayList<>(rowSize);
 	}
 
-	private DataSet(AttributeType types, List<DataRow> rows)
+	private DataSet(AttributeType type, List<DataRow> rows)
 	{
-		this.types = types;
+		this.attributeType = type;
 		this.rows = rows;
 		this.columnSize = rows.size() == 0 ? 0 : rows.get(0).size();
 	}
@@ -70,7 +70,7 @@ public class DataSet implements Iterable<DataRow>
 		DataRow maxRow = getMaxRow();
 
 		return new DataSet(
-				types,
+				attributeType,
 				rows.stream()
 						.map(row -> row
 								.minmax(minRow, maxRow, newMin, newMax, MAX_SCALE))
@@ -88,12 +88,12 @@ public class DataSet implements Iterable<DataRow>
 	{
 		BigDecimal[] min = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			min[i] = types.isNominal(i) ? ZERO :
+			min[i] = isNominal(i) ? ZERO :
 					getColumnStream(i)
 							.min(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("min: {}", Arrays.toString(min));
 
-		return new DataRow(types, min);
+		return new DataRow(this, min);
 	}
 
 	/**
@@ -107,12 +107,12 @@ public class DataSet implements Iterable<DataRow>
 	{
 		BigDecimal[] max = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			max[i] = types.isNominal(i) ? ZERO :
+			max[i] = isNominal(i) ? ZERO :
 					getColumnStream(i)
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("max: {}", Arrays.toString(max));
 
-		return new DataRow(types, max);
+		return new DataRow(this, max);
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class DataSet implements Iterable<DataRow>
 		DataRow standardDeviation = getStandardDeviationRow(average);
 
 		return new DataSet(
-				types,
+				attributeType,
 				rows.stream()
 						.map(row -> row
 								.zScore(average, standardDeviation, MAX_SCALE))
@@ -145,13 +145,13 @@ public class DataSet implements Iterable<DataRow>
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			avg[i] = types.isNominal(i) ? ZERO :
+			avg[i] = isNominal(i) ? ZERO :
 					getColumnStream(i)
 							.reduce(ZERO, BigDecimal::add)
 							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
 		log.debug("average: {}", Arrays.toString(avg));
 
-		return new DataRow(types, avg);
+		return new DataRow(this, avg);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public class DataSet implements Iterable<DataRow>
 		for (int i = 0; i < columnSize; i++)
 		{
 			BigDecimal avgi = averageRow.get(i);
-			stdv[i] = types.isNominal(i) ? ZERO :
+			stdv[i] = isNominal(i) ? ZERO :
 					MathTools.sqrt(
 							getColumnStream(i)
 									.map(v -> v.subtract(avgi).pow(2))
@@ -177,7 +177,7 @@ public class DataSet implements Iterable<DataRow>
 		}
 		log.debug("standard deviation: {}", Arrays.toString(stdv));
 
-		return new DataRow(types, stdv);
+		return new DataRow(this, stdv);
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class DataSet implements Iterable<DataRow>
 	{
 		int[] tenPowers = getMaxOrderMagnitude();
 		return new DataSet(
-				types,
+				attributeType,
 				rows.stream()
 						.map(row -> row
 								.decimalScaling(tenPowers))
@@ -210,7 +210,7 @@ public class DataSet implements Iterable<DataRow>
 		int[] j = new int[columnSize];
 		for (int i = 0; i < columnSize; i++)
 		{
-			if (types.isNumerical(i))
+			if (isNumerical(i))
 			{
 				int tenPower = 0;
 				BigDecimal n = absMaxRow.get(i);
@@ -238,13 +238,13 @@ public class DataSet implements Iterable<DataRow>
 	{
 		BigDecimal[] absmax = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			absmax[i] = types.isNominal(i) ? ZERO :
+			absmax[i] = isNominal(i) ? ZERO :
 					getColumnStream(i)
 							.map(BigDecimal::abs)
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("Absolute maximum: {}", Arrays.toString(absmax));
 
-		return new DataRow(types, absmax);
+		return new DataRow(this, absmax);
 	}
 
 	/**
@@ -256,6 +256,28 @@ public class DataSet implements Iterable<DataRow>
 	private Stream<BigDecimal> getColumnStream(int column)
 	{
 		return rows.stream().map(row -> row.get(column));
+	}
+
+	/**
+	 * Retorna true si la columna especificada es atributo de tipo numerico.
+	 *
+	 * @param c El numero de columna
+	 * @return Si el tipo de atributo es numerico.
+	 */
+	public boolean isNumerical(int c)
+	{
+		return attributeType.isNumerical(c);
+	}
+
+	/**
+	 * Retorna true si la columna especificada es atributo de tipo nominal.
+	 *
+	 * @param c El numero de columna
+	 * @return Si el tipo de atributo es nominal.
+	 */
+	public boolean isNominal(int c)
+	{
+		return attributeType.isNominal(c);
 	}
 
 	@Override
@@ -277,7 +299,7 @@ public class DataSet implements Iterable<DataRow>
 				.append("\n"));
 
 		return "DataSet{" +
-				"types=" + types +
+				"attributeType=" + attributeType +
 				", columnSize=" + columnSize +
 				", rows={\n" + sb.toString() + "}" +
 				'}';
