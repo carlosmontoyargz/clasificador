@@ -1,7 +1,6 @@
 package mx.fcc.buap.md.clasificador.domain;
 
 import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import mx.fcc.buap.md.clasificador.math.MathTools;
 
@@ -11,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,14 +21,12 @@ import static java.math.BigDecimal.ZERO;
  * @author Carlos Montoya
  * @since 13/03/2019
  */
-@Getter
-@ToString
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
-	private final AttributeType types;
+	@Getter private final AttributeType types;
+	@Getter private final int columnSize;
 	private final List<DataRow> rows;
-	private final int columnSize;
 
 	private static final int MAX_SCALE = 25;
 
@@ -137,7 +135,8 @@ public class DataSet implements Iterable<DataRow>
 	public DataSet decimalScaling()
 	{
 		int[] tenPowers = getTenPowers();
-		return new DataSet(types,
+		return new DataSet(
+				types,
 				rows.stream()
 						.map(row ->
 								row.decimalScaling(tenPowers))
@@ -187,4 +186,22 @@ public class DataSet implements Iterable<DataRow>
 
 	@Override
 	public Iterator<DataRow> iterator() { return rows.iterator(); }
+
+	@Override
+	public String toString()
+	{
+		AtomicInteger i = new AtomicInteger(0);
+		StringBuilder sb = new StringBuilder();
+		rows.forEach(r -> sb
+				.append(i.incrementAndGet())
+				.append(" - ")
+				.append(r)
+				.append("\n"));
+
+		return "DataSet{" +
+				"types=" + types +
+				", columnSize=" + columnSize +
+				", rows={\n" + sb.toString() + "}" +
+				'}';
+	}
 }

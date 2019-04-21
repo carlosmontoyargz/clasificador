@@ -32,19 +32,16 @@ public class ClusteringService
 			AttributeType types = dataSet.getTypes();
 
 			log.info("------------------- Original ------------------------------");
-			log.info(types);
-			dataSet.forEach(log::info);
+			log.info(dataSet);
 
 			log.info("------------------- min-max ---------------------------------");
-			log.info(types);
-			dataSet.minMax(BigDecimal.ZERO, BigDecimal.ONE).forEach(log::info);
+			log.info(dataSet.minMax(BigDecimal.ZERO, BigDecimal.ONE));
 
 			log.info("------------------- zScore ---------------------------------");
-			dataSet.zScore().forEach(log::info);
+			log.info(dataSet.zScore());
 
 			log.info("------------------- Decimal Scaling ---------------------------------");
-			log.info(types);
-			dataSet.decimalScaling().forEach(log::info);
+			log.info(dataSet.decimalScaling());
 		}
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
