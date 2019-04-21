@@ -1,6 +1,5 @@
 package mx.fcc.buap.md.clasificador.domain;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
@@ -14,55 +13,55 @@ import static java.math.BigDecimal.ZERO;
  * @since 14/03/2019
  */
 @RequiredArgsConstructor
-@Getter
 public class DataRow
 {
-	private final BigDecimal[] columns;
+	private final AttributeType types;
+	private final BigDecimal[] attributes;
 
-	public int size() { return columns.length; }
+	public int size() { return attributes.length; }
 
-	public BigDecimal get(int i) { return columns[i]; }
+	public BigDecimal get(int i) { return attributes[i]; }
 
-	public void set(int i, BigDecimal n) { columns[i] = n; }
+	public void set(int i, BigDecimal n) { attributes[i] = n; }
 
 	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = columns[i]
-					.subtract(minRow.columns[i])
-					.divide
-					(
-						maxRow.columns[i]
-								.subtract(minRow.columns[i]),
-						RoundingMode.HALF_UP
-					)
-					.multiply(newMax.subtract(newMin))
-					.add(newMin);
+			normalized[i] = types.isNominal(i) ? attributes[i] :
+					attributes[i]
+							.subtract(minRow.attributes[i])
+							.divide(
+									maxRow.attributes[i].subtract(minRow.attributes[i]),
+									//10,
+									RoundingMode.HALF_UP)
+							.multiply(newMax.subtract(newMin))
+							.add(newMin);
 
-		return new DataRow(normalized);
+		return new DataRow(types, normalized);
 	}
 
 	public DataRow zScore(DataRow avg, DataRow stddev)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = ZERO.equals(stddev.columns[i]) ? columns[i] :
-					columns[i]
-							.subtract(avg.columns[i])
-							.divide(stddev.columns[i], RoundingMode.HALF_UP);
-		return new DataRow(normalized);
+			normalized[i] = types.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
+					attributes[i]
+							.subtract(avg.attributes[i])
+							.divide(stddev.attributes[i], RoundingMode.HALF_UP);
+		return new DataRow(types, normalized);
 	}
 
 	public DataRow decimalScaling(int[] j)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
-			normalized[i] = columns[i].movePointLeft(j[i]);
+			normalized[i] = types.isNominal(i) ? attributes[i] :
+					attributes[i].movePointLeft(j[i]);
 
-		return new DataRow(normalized);
+		return new DataRow(types, normalized);
 	}
 
 	@Override
-	public String toString() { return Arrays.toString(columns); }
+	public String toString() { return Arrays.toString(attributes); }
 }

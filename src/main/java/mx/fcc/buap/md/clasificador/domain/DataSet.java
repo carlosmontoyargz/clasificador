@@ -1,5 +1,6 @@
 package mx.fcc.buap.md.clasificador.domain;
 
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import mx.fcc.buap.md.clasificador.math.MathTools;
@@ -13,153 +14,175 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.math.BigDecimal.ONE;
+import static java.math.BigDecimal.ZERO;
+
 /**
  * @author Carlos Montoya
  * @since 13/03/2019
  */
+@Getter
 @ToString
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
-	private List<DataRow> rows;
-	private int[] types;
-	private int columnSize;
+	private final AttributeType types;
+	private final List<DataRow> rows;
+	private final int columnSize;
 
-	public DataSet(int rowSize, int columnSize, int[] types)
+	private static final int MAX_SCALE = 20;
+
+	public DataSet(AttributeType types, int rowSize, int columnSize)
 	{
-		this.rows = new ArrayList<>(rowSize);
 		this.types = types;
 		this.columnSize = columnSize;
+		this.rows = new ArrayList<>(rowSize);
 	}
 
-	private DataSet(List<DataRow> rows, int[] types)
+	private DataSet(AttributeType types, List<DataRow> rows)
 	{
-		this.rows = rows;
 		this.types = types;
-		if (rows.size() > 0) columnSize = rows.get(0).size();
+		this.rows = rows;
+		this.columnSize = rows.size() == 0 ? 0 : rows.get(0).size();
 	}
 
 	public void add(DataRow r)
 	{
-		if (r.size() == columnSize)
-			rows.add(r);
-		else
-			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
+		if (r.size() == columnSize) rows.add(r);
+		else log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
 
 	public DataSet minMax(BigDecimal newMin, BigDecimal newMax)
 	{
 		DataRow minRow = getMinRow();
-		log.debug("minA: {}", minRow);
-
 		DataRow maxRow = getMaxRow();
-		log.debug("maxA: {}", maxRow);
 
-		return new DataSet(rows.stream()
-				.map(row -> row.minmax(minRow, maxRow, newMin, newMax))
-				.collect(Collectors.toList()), types);
+		return new DataSet(
+				types,
+				rows.stream()
+						.map(row ->
+								row.minmax(minRow, maxRow, newMin, newMax))
+						.collect(Collectors.toList()));
 	}
 
 	private DataRow getMinRow()
 	{
 		BigDecimal[] min = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			min[i] = getColumnValues(i)
-					.min(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
-		return new DataRow(min);
+			min[i] = types.isNominal(i) ? ZERO :
+					getColumnValues(i)
+							.min(BigDecimal::compareTo).orElse(ZERO);
+		log.debug("min: {}", Arrays.toString(min));
+
+		return new DataRow(types, min);
 	}
 
 	private DataRow getMaxRow()
 	{
 		BigDecimal[] max = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			max[i] = getColumnValues(i)
-					.max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
-		return new DataRow(max);
+			max[i] = types.isNominal(i) ? ZERO :
+					getColumnValues(i)
+							.max(BigDecimal::compareTo).orElse(ZERO);
+		log.debug("max: {}", Arrays.toString(max));
+
+		return new DataRow(types, max);
 	}
 
 	public DataSet zScore()
 	{
-		DataRow averageRow = getAverageRow();
-		log.debug("average: {}", averageRow);
+		DataRow average = getAverageRow();
+		DataRow standardDeviation = getStandardDeviationRow(average);
 
-		DataRow stddvtRow = getStandardDeviationRow(averageRow, 10);
-		log.debug("standard deviation: {}", stddvtRow);
-
-		return new DataSet(rows.stream()
-				.map(row -> row.zScore(averageRow, stddvtRow))
-				.collect(Collectors.toList()), types);
+		return new DataSet(
+				types,
+				rows.stream()
+						.map(row ->
+								row.zScore(average, standardDeviation))
+						.collect(Collectors.toList()));
 	}
 
 	private DataRow getAverageRow()
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			avg[i] = getColumnValues(i)
-					.reduce(BigDecimal.ZERO, BigDecimal::add)
-					.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
-		return new DataRow(avg);
+			avg[i] = types.isNominal(i) ? ZERO :
+					getColumnValues(i)
+							.reduce(ZERO, BigDecimal::add)
+							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
+		log.debug("average: {}", Arrays.toString(avg));
+
+		return new DataRow(types, avg);
 	}
 
-	private DataRow getStandardDeviationRow(DataRow averageRow, int scale)
+	private DataRow getStandardDeviationRow(DataRow averageRow)
 	{
 		BigDecimal[] stdv = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
 		{
 			BigDecimal avgi = averageRow.get(i);
-			stdv[i] = MathTools.sqrt(
-					getColumnValues(i)
-							.map(v -> v.subtract(avgi).pow(2))
-							.reduce(BigDecimal.ZERO, BigDecimal::add)
-							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP),
-					scale);
+			stdv[i] = types.isNominal(i) ? ZERO :
+					MathTools.sqrt(
+							getColumnValues(i)
+									.map(v -> v.subtract(avgi).pow(2))
+									.reduce(ZERO, BigDecimal::add)
+									.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP),
+							MAX_SCALE);
 		}
-		return new DataRow(stdv);
+		log.debug("standard deviation: {}", Arrays.toString(stdv));
+
+		return new DataRow(types, stdv);
 	}
 
 	public DataSet decimalScaling()
 	{
+		int[] tenPowers = getTenPowers();
+		return new DataSet(types,
+				rows.stream()
+						.map(row ->
+								row.decimalScaling(tenPowers))
+						.collect(Collectors.toList()));
+	}
+
+	private int[] getTenPowers()
+	{
 		DataRow absMaxRow = getAbsoluteMaxRow();
-		log.debug("Absolute maximum: {}", absMaxRow);
-
-		int[] tenPowers = getTenPowers(absMaxRow);
-		log.debug("Positions to move: {}", Arrays.toString(tenPowers));
-
-		return new DataSet(rows.stream()
-				.map(row -> row.decimalScaling(tenPowers))
-				.collect(Collectors.toList()), types);
+		int[] j = new int[columnSize];
+		for (int i = 0; i < columnSize; i++)
+		{
+			if (types.isNumerical(i))
+			{
+				int tenPower = 0;
+				BigDecimal n = absMaxRow.get(i);
+				while (n.compareTo(ONE) > 0)
+				{
+					tenPower++;
+					n = n.movePointLeft(1);
+				}
+				j[i] = tenPower;
+			}
+			else j[i] = 0;
+		}
+		log.debug("Positions to move: {}", Arrays.toString(j));
+		return j;
 	}
 
 	private DataRow getAbsoluteMaxRow()
 	{
 		BigDecimal[] absmax = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			absmax[i] = getColumnValues(i)
-					.map(BigDecimal::abs)
-					.max(BigDecimal::compareTo).orElse(BigDecimal.ZERO);
-		return new DataRow(absmax);
-	}
+			absmax[i] = types.isNominal(i) ? ZERO :
+					getColumnValues(i)
+							.map(BigDecimal::abs)
+							.max(BigDecimal::compareTo).orElse(ZERO);
+		log.debug("Absolute maximum: {}", Arrays.toString(absmax));
 
-	private int[] getTenPowers(DataRow absMaxRow)
-	{
-		int[] j = new int[columnSize];
-		for (int i = 0; i < columnSize; i++)
-		{
-			int tenPower = 0;
-			BigDecimal n = absMaxRow.get(i);
-			while (n.compareTo(BigDecimal.ONE) > 0)
-			{
-				tenPower++;
-				n = n.movePointLeft(1);
-			}
-			j[i] = tenPower;
-		}
-		return j;
+		return new DataRow(types, absmax);
 	}
 
 	private Stream<BigDecimal> getColumnValues(int column)
 	{
-		return rows.stream().map(dataRow -> dataRow.get(column));
+		return rows.stream().map(row -> row.get(column));
 	}
 
 	@Override
