@@ -28,10 +28,6 @@ public class DataRow
 		this.attributes = attributes;
 	}
 
-	public BigDecimal get(int i) { return attributes[i]; }
-
-	public void set(int i, BigDecimal n) { attributes[i] = n; }
-
 	/**
 	 * Normaliza este DataRow mediante el metodo min-max, a partir de los parametros especificados,
 	 * y retorna el resultado en un DataRow nuevo.
@@ -99,6 +95,10 @@ public class DataRow
 	 * @return el numero de atributos de este DataRow
 	 */
 	public int size() { return attributes.length; }
+
+	public BigDecimal get(int i) { return attributes[i]; }
+
+	public void set(int i, BigDecimal n) { attributes[i] = n; }
 
 	@Override
 	public boolean equals(Object o)
