@@ -24,31 +24,34 @@ public class DataRow
 
 	public void set(int i, BigDecimal n) { attributes[i] = n; }
 
-	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax)
+	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int scale)
 	{
+		BigDecimal diffNewMinNewMax = newMax.subtract(newMin);
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
+		{
+			BigDecimal diffMinMax = maxRow.attributes[i].subtract(minRow.attributes[i]);
 			normalized[i] = types.isNominal(i) ? attributes[i] :
 					attributes[i]
 							.subtract(minRow.attributes[i])
-							.divide(
-									maxRow.attributes[i].subtract(minRow.attributes[i]),
-									//10,
-									RoundingMode.HALF_UP)
-							.multiply(newMax.subtract(newMin))
-							.add(newMin);
+							.divide(diffMinMax, scale, RoundingMode.HALF_UP)
+							.multiply(diffNewMinNewMax)
+							.add(newMin)
+							.stripTrailingZeros();
+		}
 
 		return new DataRow(types, normalized);
 	}
 
-	public DataRow zScore(DataRow avg, DataRow stddev)
+	public DataRow zScore(DataRow avg, DataRow stddev, int scale)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
 			normalized[i] = types.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
 					attributes[i]
 							.subtract(avg.attributes[i])
-							.divide(stddev.attributes[i], RoundingMode.HALF_UP);
+							.divide(stddev.attributes[i], scale, RoundingMode.HALF_UP)
+							.stripTrailingZeros();
 		return new DataRow(types, normalized);
 	}
 
@@ -57,7 +60,9 @@ public class DataRow
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
 			normalized[i] = types.isNominal(i) ? attributes[i] :
-					attributes[i].movePointLeft(j[i]);
+					attributes[i]
+							.movePointLeft(j[i])
+							.stripTrailingZeros();;
 
 		return new DataRow(types, normalized);
 	}

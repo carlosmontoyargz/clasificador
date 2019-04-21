@@ -30,7 +30,7 @@ public class DataSet implements Iterable<DataRow>
 	private final List<DataRow> rows;
 	private final int columnSize;
 
-	private static final int MAX_SCALE = 20;
+	private static final int MAX_SCALE = 25;
 
 	public DataSet(AttributeType types, int rowSize, int columnSize)
 	{
@@ -61,7 +61,7 @@ public class DataSet implements Iterable<DataRow>
 				types,
 				rows.stream()
 						.map(row ->
-								row.minmax(minRow, maxRow, newMin, newMax))
+								row.minmax(minRow, maxRow, newMin, newMax, MAX_SCALE))
 						.collect(Collectors.toList()));
 	}
 
@@ -98,7 +98,7 @@ public class DataSet implements Iterable<DataRow>
 				types,
 				rows.stream()
 						.map(row ->
-								row.zScore(average, standardDeviation))
+								row.zScore(average, standardDeviation, MAX_SCALE))
 						.collect(Collectors.toList()));
 	}
 
