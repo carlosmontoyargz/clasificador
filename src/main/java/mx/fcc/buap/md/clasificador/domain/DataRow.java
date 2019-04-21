@@ -1,12 +1,14 @@
 package mx.fcc.buap.md.clasificador.domain;
 
 import lombok.Getter;
+import mx.fcc.buap.md.clasificador.math.MathTools;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.math.BigDecimal.ONE;
 import static java.math.BigDecimal.ZERO;
 
 /**
@@ -28,13 +30,31 @@ public class DataRow
 		this.attributes = attributes;
 	}
 
+	public BigDecimal distance(DataRow other, int precision)
+	{
+		BigDecimal r = ZERO;
+		for (int i = 0; i < attributes.length; i++)
+			r = r.add( distance(i, other.attributes[i]).pow(2) );
+		return MathTools.sqrt(r, precision);
+	}
+
+	private BigDecimal distance(int column, BigDecimal other)
+	{
+		if (other == null) return ONE;
+
+		if (dataSet.isNominal(column))
+			return attributes[column].equals(other) ? ZERO : ONE;
+		else
+			return attributes[column].subtract(other).abs(); // FIXME hay que dividir entre el rango
+	}
+
 	/**
 	 * Normaliza este DataRow mediante el metodo min-max, a partir de los parametros especificados,
 	 * y retorna el resultado en un DataRow nuevo.
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int scale)
+	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int precision)
 	{
 		BigDecimal diffNewMinNewMax = newMax.subtract(newMin);
 		BigDecimal[] normalized = new BigDecimal[size()];
@@ -44,7 +64,7 @@ public class DataRow
 			normalized[i] = dataSet.isNominal(i) ? attributes[i] :
 					attributes[i]
 							.subtract(minRow.attributes[i])
-							.divide(diffMinMax, scale, RoundingMode.HALF_UP)
+							.divide(diffMinMax, precision, RoundingMode.HALF_UP)
 							.multiply(diffNewMinNewMax)
 							.add(newMin)
 							.stripTrailingZeros();
@@ -59,14 +79,14 @@ public class DataRow
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow zScore(DataRow avg, DataRow stddev, int scale)
+	public DataRow zScore(DataRow avg, DataRow stddev, int precision)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
 			normalized[i] = dataSet.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
 					attributes[i]
 							.subtract(avg.attributes[i])
-							.divide(stddev.attributes[i], scale, RoundingMode.HALF_UP)
+							.divide(stddev.attributes[i], precision, RoundingMode.HALF_UP)
 							.stripTrailingZeros();
 
 		return new DataRow(dataSet, normalized);

@@ -9,7 +9,7 @@ import java.math.RoundingMode;
  */
 public class MathTools
 {
-	public static BigDecimal sqrt(BigDecimal A, final int SCALE)
+	public static BigDecimal sqrt(BigDecimal A, final int precision)
 	{
 		BigDecimal x0 = BigDecimal.ZERO;
 		BigDecimal x1 = new BigDecimal(Math.sqrt(A.doubleValue()));
@@ -17,10 +17,9 @@ public class MathTools
 		while (!x0.equals(x1))
 		{
 			x0 = x1;
-			x1 = A.divide(x0, SCALE, RoundingMode.HALF_UP);
+			x1 = A.divide(x0, precision, RoundingMode.HALF_UP);
 			x1 = x1.add(x0);
-			x1 = x1.divide(TWO, SCALE, RoundingMode.HALF_UP);
-
+			x1 = x1.divide(TWO, precision, RoundingMode.HALF_UP);
 		}
 		return x1;
 	}
