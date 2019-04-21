@@ -1,7 +1,7 @@
-package mx.fcc.buap.md.clasificador;
+package mx.fcc.buap.clasificador;
 
-import mx.fcc.buap.md.clasificador.storage.StorageProperties;
-import mx.fcc.buap.md.clasificador.storage.StorageService;
+import mx.fcc.buap.clasificador.storage.StorageProperties;
+import mx.fcc.buap.clasificador.storage.StorageService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador;
+package mx.fcc.buap.clasificador;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

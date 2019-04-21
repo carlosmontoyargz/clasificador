@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador.math;
+package mx.fcc.buap.clasificador.math;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

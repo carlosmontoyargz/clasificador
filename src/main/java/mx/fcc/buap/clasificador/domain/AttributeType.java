@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador.domain;
+package mx.fcc.buap.clasificador.domain;
 
 import lombok.RequiredArgsConstructor;
 

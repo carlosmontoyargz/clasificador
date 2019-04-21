@@ -1,7 +1,7 @@
-package mx.fcc.buap.md.clasificador.controller;
+package mx.fcc.buap.clasificador.controller;
 
-import mx.fcc.buap.md.clasificador.storage.StorageFileNotFoundException;
-import mx.fcc.buap.md.clasificador.storage.StorageService;
+import mx.fcc.buap.clasificador.storage.StorageFileNotFoundException;
+import mx.fcc.buap.clasificador.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;

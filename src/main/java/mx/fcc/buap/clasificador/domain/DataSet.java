@@ -1,15 +1,12 @@
-package mx.fcc.buap.md.clasificador.domain;
+package mx.fcc.buap.clasificador.domain;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
-import mx.fcc.buap.md.clasificador.math.MathTools;
+import mx.fcc.buap.clasificador.math.MathTools;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +51,17 @@ public class DataSet implements Iterable<DataRow>
 	{
 		if (r.size() == columnSize) rows.add(r);
 		else log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
+	}
+
+	/**
+	 * Clasifica este DataSet mediante el metodo k-means.
+	 *
+	 * @param k El numero de clusters
+	 * @return El conjunto de clusters encontrados.
+	 */
+	public Set<Set<DataRow>> kMeans(int k)
+	{
+		return null;
 	}
 
 	/**

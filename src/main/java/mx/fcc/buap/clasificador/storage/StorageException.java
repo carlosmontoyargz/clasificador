@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador.storage;
+package mx.fcc.buap.clasificador.storage;
 
 public class StorageException extends RuntimeException {
 

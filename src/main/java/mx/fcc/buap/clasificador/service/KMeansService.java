@@ -1,10 +1,10 @@
-package mx.fcc.buap.md.clasificador.service;
+package mx.fcc.buap.clasificador.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import mx.fcc.buap.md.clasificador.domain.DataSet;
-import mx.fcc.buap.md.clasificador.storage.StorageFileNotFoundException;
-import mx.fcc.buap.md.clasificador.storage.StorageService;
+import mx.fcc.buap.clasificador.domain.DataSet;
+import mx.fcc.buap.clasificador.storage.StorageFileNotFoundException;
+import mx.fcc.buap.clasificador.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

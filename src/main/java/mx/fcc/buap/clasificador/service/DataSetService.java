@@ -1,8 +1,8 @@
-package mx.fcc.buap.md.clasificador.service;
+package mx.fcc.buap.clasificador.service;
 
-import mx.fcc.buap.md.clasificador.domain.AttributeType;
-import mx.fcc.buap.md.clasificador.domain.DataRow;
-import mx.fcc.buap.md.clasificador.domain.DataSet;
+import mx.fcc.buap.clasificador.domain.AttributeType;
+import mx.fcc.buap.clasificador.domain.DataRow;
+import mx.fcc.buap.clasificador.domain.DataSet;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

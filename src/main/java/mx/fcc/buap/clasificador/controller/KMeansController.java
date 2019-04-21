@@ -1,7 +1,7 @@
-package mx.fcc.buap.md.clasificador.controller;
+package mx.fcc.buap.clasificador.controller;
 
 import lombok.RequiredArgsConstructor;
-import mx.fcc.buap.md.clasificador.service.KMeansService;
+import mx.fcc.buap.clasificador.service.KMeansService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

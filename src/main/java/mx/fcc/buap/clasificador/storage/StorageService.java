@@ -1,4 +1,4 @@
-package mx.fcc.buap.md.clasificador.storage;
+package mx.fcc.buap.clasificador.storage;
 
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;

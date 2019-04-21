@@ -1,7 +1,7 @@
-package mx.fcc.buap.md.clasificador.domain;
+package mx.fcc.buap.clasificador.domain;
 
 import lombok.Getter;
-import mx.fcc.buap.md.clasificador.math.MathTools;
+import mx.fcc.buap.clasificador.math.MathTools;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
