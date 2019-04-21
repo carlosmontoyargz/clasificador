@@ -1,12 +1,13 @@
 package mx.fcc.buap.md.clasificador.controller;
 
 import lombok.RequiredArgsConstructor;
-import mx.fcc.buap.md.clasificador.service.ClusteringService;
+import mx.fcc.buap.md.clasificador.service.KMeansService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Carlos Montoya
@@ -14,11 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
  */
 @Controller
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ClusteringController
+@RequestMapping("/kmeans")
+public class KMeansController
 {
-	private final ClusteringService service;
+	private final KMeansService service;
 
-	@GetMapping("/kmeans/{filename}")
+	@GetMapping("/{filename}")
 	public String kMeans(@PathVariable String filename, Model model)
 	{
 		service.kmeans(filename);

@@ -2,7 +2,6 @@ package mx.fcc.buap.md.clasificador.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import mx.fcc.buap.md.clasificador.domain.AttributeType;
 import mx.fcc.buap.md.clasificador.domain.DataSet;
 import mx.fcc.buap.md.clasificador.storage.StorageFileNotFoundException;
 import mx.fcc.buap.md.clasificador.storage.StorageService;
@@ -19,7 +18,7 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Log4j2
-public class ClusteringService
+public class KMeansService
 {
 	private final StorageService storageService;
 	private final DataSetService dataSetService;
@@ -29,7 +28,6 @@ public class ClusteringService
 		try
 		{
 			DataSet dataSet = dataSetService.read(storageService.load(filename));
-			AttributeType types = dataSet.getTypes();
 
 			log.info("------------------- Original ------------------------------");
 			log.info(dataSet);
