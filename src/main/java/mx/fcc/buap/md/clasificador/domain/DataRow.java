@@ -32,6 +32,17 @@ public class DataRow
 
 	public void set(int i, BigDecimal n) { attributes[i] = n; }
 
+	/**
+	 * Normaliza este DataRow mediante el metodo min-max, a partir de los parametros especificados,
+	 * y retorna el resultado en un DataRow nuevo.
+	 *
+	 * @param minRow
+	 * @param maxRow
+	 * @param newMin
+	 * @param newMax
+	 * @param scale
+	 * @return
+	 */
 	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int scale)
 	{
 		BigDecimal diffNewMinNewMax = newMax.subtract(newMin);

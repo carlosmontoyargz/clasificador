@@ -44,12 +44,26 @@ public class DataSet implements Iterable<DataRow>
 		this.columnSize = rows.size() == 0 ? 0 : rows.get(0).size();
 	}
 
+	/**
+	 * Agrega un DataRow a este DataSet, si el numero de columnas de ese DataRow
+	 * es igual al numero de columnas de este DataSet.
+	 *
+	 * @param r El DataRow a agregar a este DataSet
+	 */
 	public void add(DataRow r)
 	{
 		if (r.size() == columnSize) rows.add(r);
 		else log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
 
+	/**
+	 * Normaliza este DataSet mediante el metodo min-max, y retorna el resultado en un
+	 * DataSet nuevo.
+	 *
+	 * @param newMin el nuevo minimo para todas las columnas
+	 * @param newMax el nuevo maximo para todas las columnas
+	 * @return El resultado de la normalizacion de este DataSet
+	 */
 	public DataSet minMax(BigDecimal newMin, BigDecimal newMax)
 	{
 		DataRow minRow = getMinRow();
@@ -58,35 +72,55 @@ public class DataSet implements Iterable<DataRow>
 		return new DataSet(
 				types,
 				rows.stream()
-						.map(row ->
-								row.minmax(minRow, maxRow, newMin, newMax, MAX_SCALE))
+						.map(row -> row
+								.minmax(minRow, maxRow, newMin, newMax, MAX_SCALE))
 						.collect(Collectors.toList()));
 	}
 
+	/**
+	 * Calcula el minimo para cada atributo de este DataSet, y retorna el
+	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return Un DataRow con el minimo de cada atributo de este DataSet
+	 */
 	private DataRow getMinRow()
 	{
 		BigDecimal[] min = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
 			min[i] = types.isNominal(i) ? ZERO :
-					getColumnValues(i)
+					getColumnStream(i)
 							.min(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("min: {}", Arrays.toString(min));
 
 		return new DataRow(types, min);
 	}
 
+	/**
+	 * Calcula el maximo para cada atributo de este DataSet, y retorna el
+	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return Un DataRow con el maximo de cada atributo de este DataSet
+	 */
 	private DataRow getMaxRow()
 	{
 		BigDecimal[] max = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
 			max[i] = types.isNominal(i) ? ZERO :
-					getColumnValues(i)
+					getColumnStream(i)
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("max: {}", Arrays.toString(max));
 
 		return new DataRow(types, max);
 	}
 
+	/**
+	 * Normaliza este DataSet mediante el metodo z-score, y retorna el resultado en un
+	 * DataSet nuevo.
+	 *
+	 * @return El resultado de la normalizacion de este DataSet
+	 */
 	public DataSet zScore()
 	{
 		DataRow average = getAverageRow();
@@ -95,17 +129,24 @@ public class DataSet implements Iterable<DataRow>
 		return new DataSet(
 				types,
 				rows.stream()
-						.map(row ->
-								row.zScore(average, standardDeviation, MAX_SCALE))
+						.map(row -> row
+								.zScore(average, standardDeviation, MAX_SCALE))
 						.collect(Collectors.toList()));
 	}
 
+	/**
+	 * Calcula el promedio para cada atributo de este DataSet, y retorna el
+	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return Un DataRow con el promedio de cada atributo de este DataSet
+	 */
 	private DataRow getAverageRow()
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
 			avg[i] = types.isNominal(i) ? ZERO :
-					getColumnValues(i)
+					getColumnStream(i)
 							.reduce(ZERO, BigDecimal::add)
 							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
 		log.debug("average: {}", Arrays.toString(avg));
@@ -113,6 +154,13 @@ public class DataSet implements Iterable<DataRow>
 		return new DataRow(types, avg);
 	}
 
+	/**
+	 * Calcula la desviacion estandar para cada atributo de este DataSet, y retorna el
+	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return Un DataRow con la desviacion estandar de cada atributo de este DataSet
+	 */
 	private DataRow getStandardDeviationRow(DataRow averageRow)
 	{
 		BigDecimal[] stdv = new BigDecimal[columnSize];
@@ -121,7 +169,7 @@ public class DataSet implements Iterable<DataRow>
 			BigDecimal avgi = averageRow.get(i);
 			stdv[i] = types.isNominal(i) ? ZERO :
 					MathTools.sqrt(
-							getColumnValues(i)
+							getColumnStream(i)
 									.map(v -> v.subtract(avgi).pow(2))
 									.reduce(ZERO, BigDecimal::add)
 									.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP),
@@ -132,18 +180,31 @@ public class DataSet implements Iterable<DataRow>
 		return new DataRow(types, stdv);
 	}
 
+	/**
+	 * Normaliza este DataSet mediante el metodo decimal-scaling, y retorna el resultado en un
+	 * DataSet nuevo.
+	 *
+	 * @return El resultado de la normalizacion de este DataSet
+	 */
 	public DataSet decimalScaling()
 	{
-		int[] tenPowers = getTenPowers();
+		int[] tenPowers = getMaxOrderMagnitude();
 		return new DataSet(
 				types,
 				rows.stream()
-						.map(row ->
-								row.decimalScaling(tenPowers))
+						.map(row -> row
+								.decimalScaling(tenPowers))
 						.collect(Collectors.toList()));
 	}
 
-	private int[] getTenPowers()
+	/**
+	 * Obtiene el maximo orden de magnitud para cada atributo de este DataSet, y retorna
+	 * el resultado en un arreglo de enteros. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return un arreglo de enteros con los maximos ordenes de magnitud
+	 */
+	private int[] getMaxOrderMagnitude()
 	{
 		DataRow absMaxRow = getAbsoluteMaxRow();
 		int[] j = new int[columnSize];
@@ -166,12 +227,19 @@ public class DataSet implements Iterable<DataRow>
 		return j;
 	}
 
+	/**
+	 * Calcula el maximo absoluto para cada atributo de este DataSet, y retorna el
+	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * el resultado asignado para esa columna es 0
+	 *
+	 * @return Un DataRow con el maximo absoluto de cada atributo de este DataSet
+	 */
 	private DataRow getAbsoluteMaxRow()
 	{
 		BigDecimal[] absmax = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
 			absmax[i] = types.isNominal(i) ? ZERO :
-					getColumnValues(i)
+					getColumnStream(i)
 							.map(BigDecimal::abs)
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("Absolute maximum: {}", Arrays.toString(absmax));
@@ -179,7 +247,13 @@ public class DataSet implements Iterable<DataRow>
 		return new DataRow(types, absmax);
 	}
 
-	private Stream<BigDecimal> getColumnValues(int column)
+	/**
+	 * Retorna un Stream de objetos BigDecimal con los valores de la columna especificada.
+	 *
+	 * @param column numero de la columna a calcular
+	 * @return un Stream de los valores de una columna
+	 */
+	private Stream<BigDecimal> getColumnStream(int column)
 	{
 		return rows.stream().map(row -> row.get(column));
 	}
@@ -187,6 +261,10 @@ public class DataSet implements Iterable<DataRow>
 	@Override
 	public Iterator<DataRow> iterator() { return rows.iterator(); }
 
+	/**
+	 * Representa este DataSet en un String
+	 * @return la representacion textual de este DataSet
+	 */
 	@Override
 	public String toString()
 	{
