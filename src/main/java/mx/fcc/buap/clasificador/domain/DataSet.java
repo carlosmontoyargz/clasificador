@@ -59,9 +59,40 @@ public class DataSet implements Iterable<DataRow>
 	 * @param k El numero de clusters
 	 * @return El conjunto de clusters encontrados.
 	 */
-	public Set<Set<DataRow>> kMeans(int k)
+	public Set<Cluster> kMeans(int k)
 	{
+		Set<Cluster> clusters = new HashSet<>(k);
+		getRandomRows(k)
+				.forEach(r -> clusters.add(new Cluster(r)));
+
+		rows
+				.forEach(r ->
+				{
+					Cluster nearest;
+					BigDecimal min = ZERO;
+					for (Cluster c : clusters)
+					{
+						BigDecimal distance = c.distanceToCentroid(r);
+						if (distance.compareTo(min) < 0)
+						{
+							nearest = c;
+							min = distance;
+						}
+					}
+
+
+				});
+
 		return null;
+	}
+
+	private List<DataRow> getRandomRows(int k)
+	{
+		List<DataRow> centroids = new ArrayList<>(k);
+		for (int i = 0; i < k; i++)
+			centroids.add
+					(rows.get((int) (Math.random() * rows.size())));
+		return centroids;
 	}
 
 	/**
@@ -74,8 +105,8 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public DataSet minMax(BigDecimal newMin, BigDecimal newMax)
 	{
-		DataRow minRow = getMinRow();
-		DataRow maxRow = getMaxRow();
+		Row minRow = getMinRow();
+		Row maxRow = getMaxRow();
 
 		return new DataSet(
 				attributeType,
@@ -92,7 +123,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un DataRow con el minimo de cada atributo de este DataSet
 	 */
-	private DataRow getMinRow()
+	private Row getMinRow()
 	{
 		BigDecimal[] min = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -111,7 +142,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un DataRow con el maximo de cada atributo de este DataSet
 	 */
-	private DataRow getMaxRow()
+	private Row getMaxRow()
 	{
 		BigDecimal[] max = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -131,8 +162,8 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public DataSet zScore()
 	{
-		DataRow average = getAverageRow();
-		DataRow standardDeviation = getStandardDeviationRow(average);
+		Row average = getAverageRow();
+		Row standardDeviation = getStandardDeviationRow(average);
 
 		return new DataSet(
 				attributeType,
@@ -149,7 +180,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un DataRow con el promedio de cada atributo de este DataSet
 	 */
-	private DataRow getAverageRow()
+	private Row getAverageRow()
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -158,8 +189,7 @@ public class DataSet implements Iterable<DataRow>
 							.reduce(ZERO, BigDecimal::add)
 							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
 		log.debug("average: {}", Arrays.toString(avg));
-
-		return new DataRow(this, avg);
+		return new Row(avg);
 	}
 
 	/**
@@ -169,7 +199,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un DataRow con la desviacion estandar de cada atributo de este DataSet
 	 */
-	private DataRow getStandardDeviationRow(DataRow averageRow)
+	private Row getStandardDeviationRow(Row averageRow)
 	{
 		BigDecimal[] stdv = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -184,8 +214,7 @@ public class DataSet implements Iterable<DataRow>
 							MAX_SCALE);
 		}
 		log.debug("standard deviation: {}", Arrays.toString(stdv));
-
-		return new DataRow(this, stdv);
+		return new Row(stdv);
 	}
 
 	/**

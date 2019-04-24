@@ -15,26 +15,26 @@ import static java.math.BigDecimal.ZERO;
  * @author Carlos Montoya
  * @since 14/03/2019
  */
-public class DataRow
+public class DataRow extends Row
 {
 	@Getter private int id;
 	private final DataSet dataSet;
-	private final BigDecimal[] attributes;
 
 	private static final AtomicInteger counter = new AtomicInteger(0);
 
 	public DataRow(DataSet dataSet, BigDecimal[] attributes)
 	{
+		super(attributes);
 		this.id = counter.incrementAndGet();
 		this.dataSet = dataSet;
-		this.attributes = attributes;
 	}
 
-	public BigDecimal distance(DataRow other, int precision)
+	public BigDecimal compareTo(DataRow other, int precision)
 	{
 		BigDecimal r = ZERO;
 		for (int i = 0; i < attributes.length; i++)
-			r = r.add( distance(i, other.attributes[i]).pow(2) );
+			r = r.add( distance(i, other.attributes[i])
+					.pow(2) );
 		return MathTools.sqrt(r, precision);
 	}
 
@@ -54,7 +54,7 @@ public class DataRow
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow minmax(DataRow minRow, DataRow maxRow, BigDecimal newMin, BigDecimal newMax, int precision)
+	public DataRow minmax(Row minRow, Row maxRow, BigDecimal newMin, BigDecimal newMax, int precision)
 	{
 		BigDecimal diffNewMinNewMax = newMax.subtract(newMin);
 		BigDecimal[] normalized = new BigDecimal[size()];
@@ -79,7 +79,7 @@ public class DataRow
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow zScore(DataRow avg, DataRow stddev, int precision)
+	public DataRow zScore(Row avg, Row stddev, int precision)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
@@ -109,16 +109,6 @@ public class DataRow
 
 		return new DataRow(dataSet, normalized);
 	}
-
-	/**
-	 * Retorna el numero de atributos de este DataRow
-	 * @return el numero de atributos de este DataRow
-	 */
-	public int size() { return attributes.length; }
-
-	public BigDecimal get(int i) { return attributes[i]; }
-
-	public void set(int i, BigDecimal n) { attributes[i] = n; }
 
 	@Override
 	public boolean equals(Object o)
