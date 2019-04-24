@@ -1,6 +1,6 @@
 package mx.fcc.buap.clasificador.domain;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 import mx.fcc.buap.clasificador.math.MathTools;
 
@@ -18,14 +18,14 @@ import static java.math.BigDecimal.ZERO;
  * @author Carlos Montoya
  * @since 13/03/2019
  */
+@Data
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
-	@Getter private final AttributeType attributeType;
-	@Getter private final int columnSize;
 	private final List<DataRow> rows;
-
-	private static final int MAX_SCALE = 25;
+	private final int columnSize;
+	private final AttributeType attributeType;
+	private int precision = 25;
 
 	public DataSet(AttributeType type, int rowSize, int columnSize)
 	{
@@ -42,15 +42,17 @@ public class DataSet implements Iterable<DataRow>
 	}
 
 	/**
-	 * Agrega un DataRow a este DataSet, si el numero de columnas de ese DataRow
+	 * Agrega un Row a este DataSet, si el numero de columnas de ese Row
 	 * es igual al numero de columnas de este DataSet.
 	 *
 	 * @param r El DataRow a agregar a este DataSet
 	 */
-	public void add(DataRow r)
+	public void add(Row r)
 	{
-		if (r.size() == columnSize) rows.add(r);
-		else log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
+		if (r.size() == columnSize)
+			rows.add(new DataRow(r, this));
+		else
+			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
 
 	/**
@@ -61,9 +63,9 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public Set<Cluster> kMeans(int k)
 	{
-		Set<Cluster> clusters = new HashSet<>(k);
-		getRandomRows(k)
-				.forEach(r -> clusters.add(new Cluster(r)));
+		Set<Cluster> clusters = getRandomRows(k).stream()
+				.map(r -> new Cluster(this, r))
+				.collect(Collectors.toSet());
 
 		rows
 				.forEach(r ->
@@ -88,10 +90,14 @@ public class DataSet implements Iterable<DataRow>
 
 	private List<DataRow> getRandomRows(int k)
 	{
-		List<DataRow> centroids = new ArrayList<>(k);
-		for (int i = 0; i < k; i++)
-			centroids.add
-					(rows.get((int) (Math.random() * rows.size())));
+		if (rows.size() < k) return Collections.emptyList();
+		List<DataRow> centroids = new ArrayList<>();
+		while (centroids.size() < k)
+		{
+			DataRow randomRow = rows.get((int) (Math.random() * rows.size()));
+			if (!centroids.contains(randomRow))
+				centroids.add(randomRow);
+		}
 		return centroids;
 	}
 
@@ -112,16 +118,16 @@ public class DataSet implements Iterable<DataRow>
 				attributeType,
 				rows.stream()
 						.map(row -> row
-								.minmax(minRow, maxRow, newMin, newMax, MAX_SCALE))
+								.minmax(minRow, maxRow, newMin, newMax, precision))
 						.collect(Collectors.toList()));
 	}
 
 	/**
 	 * Calcula el minimo para cada atributo de este DataSet, y retorna el
-	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
 	 * el resultado asignado para esa columna es 0
 	 *
-	 * @return Un DataRow con el minimo de cada atributo de este DataSet
+	 * @return Un Row con el minimo de cada atributo de este DataSet
 	 */
 	private Row getMinRow()
 	{
@@ -137,10 +143,10 @@ public class DataSet implements Iterable<DataRow>
 
 	/**
 	 * Calcula el maximo para cada atributo de este DataSet, y retorna el
-	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
 	 * el resultado asignado para esa columna es 0
 	 *
-	 * @return Un DataRow con el maximo de cada atributo de este DataSet
+	 * @return Un Row con el maximo de cada atributo de este DataSet
 	 */
 	private Row getMaxRow()
 	{
@@ -169,16 +175,16 @@ public class DataSet implements Iterable<DataRow>
 				attributeType,
 				rows.stream()
 						.map(row -> row
-								.zScore(average, standardDeviation, MAX_SCALE))
+								.zScore(average, standardDeviation, precision))
 						.collect(Collectors.toList()));
 	}
 
 	/**
 	 * Calcula el promedio para cada atributo de este DataSet, y retorna el
-	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
 	 * el resultado asignado para esa columna es 0
 	 *
-	 * @return Un DataRow con el promedio de cada atributo de este DataSet
+	 * @return Un Row con el promedio de cada atributo de este DataSet
 	 */
 	private Row getAverageRow()
 	{
@@ -194,10 +200,10 @@ public class DataSet implements Iterable<DataRow>
 
 	/**
 	 * Calcula la desviacion estandar para cada atributo de este DataSet, y retorna el
-	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
 	 * el resultado asignado para esa columna es 0
 	 *
-	 * @return Un DataRow con la desviacion estandar de cada atributo de este DataSet
+	 * @return Un Row con la desviacion estandar de cada atributo de este DataSet
 	 */
 	private Row getStandardDeviationRow(Row averageRow)
 	{
@@ -211,7 +217,7 @@ public class DataSet implements Iterable<DataRow>
 									.map(v -> v.subtract(avgi).pow(2))
 									.reduce(ZERO, BigDecimal::add)
 									.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP),
-							MAX_SCALE);
+							precision);
 		}
 		log.debug("standard deviation: {}", Arrays.toString(stdv));
 		return new Row(stdv);
@@ -243,7 +249,7 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	private int[] getMaxOrderMagnitude()
 	{
-		DataRow absMaxRow = getAbsoluteMaxRow();
+		Row absMaxRow = getAbsoluteMaxRow();
 		int[] j = new int[columnSize];
 		for (int i = 0; i < columnSize; i++)
 		{
@@ -266,12 +272,12 @@ public class DataSet implements Iterable<DataRow>
 
 	/**
 	 * Calcula el maximo absoluto para cada atributo de este DataSet, y retorna el
-	 * resultado en un DataRow nuevo. Si el atributo es de tipo nominal, entonces
+	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
 	 * el resultado asignado para esa columna es 0
 	 *
-	 * @return Un DataRow con el maximo absoluto de cada atributo de este DataSet
+	 * @return Un Row con el maximo absoluto de cada atributo de este DataSet
 	 */
-	private DataRow getAbsoluteMaxRow()
+	private Row getAbsoluteMaxRow()
 	{
 		BigDecimal[] absmax = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -281,11 +287,11 @@ public class DataSet implements Iterable<DataRow>
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("Absolute maximum: {}", Arrays.toString(absmax));
 
-		return new DataRow(this, absmax);
+		return new Row(absmax);
 	}
 
 	/**
-	 * Retorna un Stream de objetos BigDecimal con los valores de la columna especificada.
+	 * Retorna un Stream de los valores de la columna especificada.
 	 *
 	 * @param column numero de la columna a calcular
 	 * @return un Stream de los valores de una columna
@@ -293,6 +299,11 @@ public class DataSet implements Iterable<DataRow>
 	private Stream<BigDecimal> getColumnStream(int column)
 	{
 		return rows.stream().map(row -> row.get(column));
+	}
+
+	public int getRowSize()
+	{
+		return rows.size();
 	}
 
 	/**

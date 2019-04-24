@@ -29,23 +29,11 @@ public class DataRow extends Row
 		this.dataSet = dataSet;
 	}
 
-	public BigDecimal compareTo(DataRow other, int precision)
+	public DataRow(Row r, DataSet dataSet)
 	{
-		BigDecimal r = ZERO;
-		for (int i = 0; i < attributes.length; i++)
-			r = r.add( distance(i, other.attributes[i])
-					.pow(2) );
-		return MathTools.sqrt(r, precision);
-	}
-
-	private BigDecimal distance(int column, BigDecimal other)
-	{
-		if (other == null) return ONE;
-
-		if (dataSet.isNominal(column))
-			return attributes[column].equals(other) ? ZERO : ONE;
-		else
-			return attributes[column].subtract(other).abs(); // FIXME hay que dividir entre el rango
+		super(r.attributes);
+		this.dataSet = dataSet;
+		this.id = counter.incrementAndGet();
 	}
 
 	/**
@@ -108,6 +96,25 @@ public class DataRow extends Row
 							.stripTrailingZeros();;
 
 		return new DataRow(dataSet, normalized);
+	}
+
+	public BigDecimal compareTo(Row other, int precision)
+	{
+		BigDecimal r = ZERO;
+		for (int i = 0; i < attributes.length; i++)
+			r = r.add( distance(i, other.attributes[i])
+					.pow(2) );
+		return MathTools.sqrt(r, precision);
+	}
+
+	private BigDecimal distance(int column, BigDecimal other)
+	{
+		if (other == null) return ONE;
+
+		if (dataSet.isNominal(column))
+			return attributes[column].equals(other) ? ZERO : ONE;
+		else
+			return attributes[column].subtract(other).abs(); // FIXME hay que dividir entre el rango
 	}
 
 	@Override

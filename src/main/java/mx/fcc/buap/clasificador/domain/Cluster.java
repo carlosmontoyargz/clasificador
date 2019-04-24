@@ -1,40 +1,29 @@
 package mx.fcc.buap.clasificador.domain;
 
-import lombok.Data;
-
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Carlos Montoya
  * @since 24/04/2019
  */
-@Data
-public class Cluster
+public class Cluster extends DataSet
 {
-	private final DataRow centroid;
-	private final Set<DataRow> rows = new HashSet<>();
+	private Row centroid;
 
-	private static int PRECISION = 25;
-
-	public void add(DataRow row)
+	public Cluster(DataSet dataSet, Row centroid)
 	{
-		rows.add(row);
-	}
-
-	public void remove(DataRow row)
-	{
-		rows.remove(row);
+		super(dataSet.getAttributeType(), dataSet.getRowSize(), dataSet.getColumnSize());
+		this.centroid = centroid;
 	}
 
 	public BigDecimal distanceToCentroid(DataRow row)
 	{
-		return row.compareTo(centroid, PRECISION);
+		return row.compareTo(centroid, getPrecision());
 	}
 
-	public DataRow computeCentroid()
+	public Row computeCentroid()
 	{
+		centroid = new Row(new BigDecimal[0]);
 		return centroid;
 	}
 }
