@@ -142,12 +142,14 @@ public class DataSet implements Iterable<DataRow>
 		Row minRow = getMinRow();
 		Row maxRow = getMaxRow();
 
-		return new DataSet(
+		DataSet resultSet = new DataSet(
 				attributeType,
 				rows.stream()
 						.map(row -> row
 								.minmax(minRow, maxRow, newMin, newMax, precision))
 						.collect(Collectors.toList()));
+		log.info("min-max:\n{}", resultSet);
+		return resultSet;
 	}
 
 	/**
@@ -199,12 +201,14 @@ public class DataSet implements Iterable<DataRow>
 		Row average = getAverageRow();
 		Row standardDeviation = getStandardDeviationRow(average);
 
-		return new DataSet(
+		DataSet resultSet = new DataSet(
 				attributeType,
 				rows.stream()
 						.map(row -> row
 								.zScore(average, standardDeviation, precision))
 						.collect(Collectors.toList()));
+		log.info("z-score:\n{}", resultSet);
+		return resultSet;
 	}
 
 	/**
@@ -265,12 +269,14 @@ public class DataSet implements Iterable<DataRow>
 	public DataSet decimalScaling()
 	{
 		int[] tenPowers = getMaxOrderMagnitude();
-		return new DataSet(
+		DataSet resultSet = new DataSet(
 				attributeType,
 				rows.stream()
 						.map(row -> row
 								.decimalScaling(tenPowers))
 						.collect(Collectors.toList()));
+		log.info("decimal-scaling:\n{}", resultSet);
+		return resultSet;
 	}
 
 	/**
