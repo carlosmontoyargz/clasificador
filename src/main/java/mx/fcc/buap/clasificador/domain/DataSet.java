@@ -2,7 +2,7 @@ package mx.fcc.buap.clasificador.domain;
 
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
-import mx.fcc.buap.clasificador.math.MathTools;
+import mx.fcc.buap.clasificador.tools.MathTools;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

@@ -1,17 +1,21 @@
 package mx.fcc.buap.clasificador.domain;
 
 import lombok.Getter;
+import lombok.Setter;
+import mx.fcc.buap.clasificador.tools.ColorTools;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author Carlos Montoya
  * @since 24/04/2019
  */
+@Getter @Setter
 public class Cluster extends DataSet
 {
-	@Getter
 	private Row centroid;
+	private String rgbColor = ColorTools.getRandomColorRGB();
 
 	public Cluster(DataSet dataSet, Row centroid)
 	{
@@ -40,6 +44,18 @@ public class Cluster extends DataSet
 			centroid = averageRow;
 			return true;
 		}
+	}
+
+	public Object[][] arrayGraficacion()
+	{
+		Object[][] data = new Object[getRowSize()][];
+		String style = "point {size: 2; fill-color: " + rgbColor;
+
+		List<DataRow> rows = getRows();
+		for (int i = 0; i < getRowSize(); i++)
+			data[i] = new Object[] {rows.get(i).get(1), rows.get(i).get(2), style};
+
+		return data;
 	}
 
 	@Override
