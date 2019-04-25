@@ -376,15 +376,13 @@ public class DataSet implements Iterable<DataRow>
 	@Override
 	public String toString()
 	{
-		AtomicInteger i = new AtomicInteger(0);
 		StringBuilder sb = new StringBuilder();
 		rows.forEach(r -> sb
-				.append(i.incrementAndGet())
-				.append(" - ")
 				.append(r)
 				.append("\n"));
 
 		return "DataSet{\n" +
+				"rowSize=" + rows.size() + "\n" +
 				"columnSize=" + columnSize + "\n" +
 				"attributeType=" + attributeType + "\n" +
 				"rows={\n" + sb.toString() + "}" +

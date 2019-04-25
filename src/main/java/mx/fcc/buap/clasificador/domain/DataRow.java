@@ -17,7 +17,7 @@ import static java.math.BigDecimal.ZERO;
  */
 public class DataRow extends Row
 {
-	@Getter private int id;
+	@Getter private int indice;
 	private final DataSet dataSet;
 
 	private static final AtomicInteger counter = new AtomicInteger(0);
@@ -26,14 +26,21 @@ public class DataRow extends Row
 	{
 		super(attributes);
 		this.dataSet = dataSet;
-		this.id = counter.incrementAndGet();
+		this.indice = counter.incrementAndGet();
 	}
 
 	public DataRow(Row r, DataSet dataSet)
 	{
 		super(r.attributes);
 		this.dataSet = dataSet;
-		this.id = counter.incrementAndGet();
+		this.indice = counter.incrementAndGet();
+	}
+
+	private DataRow(DataSet dataSet, BigDecimal[] attributes, int indice)
+	{
+		super(attributes);
+		this.dataSet = dataSet;
+		this.indice = indice;
 	}
 
 	/**
@@ -58,7 +65,7 @@ public class DataRow extends Row
 							.stripTrailingZeros();
 		}
 
-		return new DataRow(dataSet, normalized);
+		return new DataRow(dataSet, normalized, indice);
 	}
 
 	/**
@@ -77,7 +84,7 @@ public class DataRow extends Row
 							.divide(stddev.attributes[i], precision, RoundingMode.HALF_UP)
 							.stripTrailingZeros();
 
-		return new DataRow(dataSet, normalized);
+		return new DataRow(dataSet, normalized, indice);
 	}
 
 	/**
@@ -95,7 +102,7 @@ public class DataRow extends Row
 							.movePointLeft(j[i])
 							.stripTrailingZeros();;
 
-		return new DataRow(dataSet, normalized);
+		return new DataRow(dataSet, normalized, indice);
 	}
 
 	public BigDecimal distance(Row other, int precision)
@@ -127,17 +134,17 @@ public class DataRow extends Row
 
 		DataRow dataRow = (DataRow) o;
 
-		return id == dataRow.id;
+		return indice == dataRow.indice;
 	}
 
 	@Override
-	public int hashCode() { return id; }
+	public int hashCode() { return indice; }
 
 	@Override
 	public String toString()
 	{
 		return "{" +
-				"id=" + id +
+				"indice=" + indice +
 				", " + Arrays.toString(attributes) +
 				'}';
 	}
