@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Carlos Montoya
@@ -58,10 +56,11 @@ public class KMeansController
 
 			log.info(clusters);
 
-			List<Map<String, Object>> clustersJson = clusters.toJson();
+			storageService.store(clusters.toString(), filename + "-clusters.txt");
 
 			model.addAttribute("filename", filename);
-			model.addAttribute("clusters", clustersJson);
+			model.addAttribute("resultFilename", filename + "-clusters.txt");
+			model.addAttribute("clusters", clusters.toJson());
 		}
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);

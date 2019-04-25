@@ -8,6 +8,8 @@ import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -44,6 +46,20 @@ public class FileSystemStorageService implements StorageService {
 				Files.copy(inputStream, this.rootLocation.resolve(filename),
 						StandardCopyOption.REPLACE_EXISTING);
 			}
+		}
+		catch (IOException e) {
+			throw new StorageException("Failed to store file " + filename, e);
+		}
+	}
+
+	@Override
+	public void store(String content, String filename)
+	{
+		try
+		{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(this.rootLocation.resolve(filename).toFile()));
+			writer.write(content);
+			writer.close();
 		}
 		catch (IOException e) {
 			throw new StorageException("Failed to store file " + filename, e);

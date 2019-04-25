@@ -22,13 +22,15 @@ import static java.math.BigDecimal.ZERO;
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
-	private final int id = counter.incrementAndGet();
-	private final List<DataRow> rows;
-	private final int columnSize;
-	private final AttributeType attributeType;
-	private int precision = 25;
+	private final int id = idGenerator.incrementAndGet();
 
-	private static final AtomicInteger counter = new AtomicInteger(0);
+	private final List<DataRow> rows;
+	private final AttributeType attributeType;
+	private final int columnSize;
+
+	private int precision = 25;
+	private final AtomicInteger indiceGenerator = new AtomicInteger(0);
+	private static final AtomicInteger idGenerator = new AtomicInteger(0);
 
 	public DataSet(AttributeType type, int rowSize, int columnSize)
 	{
@@ -53,7 +55,11 @@ public class DataSet implements Iterable<DataRow>
 	public void add(Row r)
 	{
 		if (r.size() == columnSize)
-			rows.add(new DataRow(r, this));
+		{
+			rows.add(r instanceof DataRow ?
+					(DataRow) r :
+					new DataRow(r, this, indiceGenerator.incrementAndGet()));
+		}
 		else
 			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
@@ -160,7 +166,7 @@ public class DataSet implements Iterable<DataRow>
 							.min(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("min: {}", Arrays.toString(min));
 
-		return new DataRow(this, min);
+		return new Row(min);
 	}
 
 	/**
@@ -179,7 +185,7 @@ public class DataSet implements Iterable<DataRow>
 							.max(BigDecimal::compareTo).orElse(ZERO);
 		log.debug("max: {}", Arrays.toString(max));
 
-		return new DataRow(this, max);
+		return new Row(max);
 	}
 
 	/**

@@ -12,6 +12,10 @@
    <div id="container" style="height: 600px; width: 900px; min-width: 310px; max-width: 800px;margin: 0 auto;">
    </div>
 
+   <div>
+      <a th:href="@{'/files/'+${resultFilename}}">Descargar archivo de resultado</a>
+   </div>
+
    <script th:inline="javascript">
        /*<![CDATA[*/
        var clusters = /*[[${clusters}]]*/ '';

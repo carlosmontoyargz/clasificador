@@ -22,25 +22,18 @@ public class DataRow extends Row
 
 	private static final AtomicInteger counter = new AtomicInteger(0);
 
-	public DataRow(DataSet dataSet, BigDecimal[] attributes)
-	{
-		super(attributes);
-		this.dataSet = dataSet;
-		this.indice = counter.incrementAndGet();
-	}
-
-	public DataRow(Row r, DataSet dataSet)
-	{
-		super(r.attributes);
-		this.dataSet = dataSet;
-		this.indice = counter.incrementAndGet();
-	}
-
 	private DataRow(DataSet dataSet, BigDecimal[] attributes, int indice)
 	{
 		super(attributes);
-		this.dataSet = dataSet;
 		this.indice = indice;
+		this.dataSet = dataSet;
+	}
+
+	public DataRow(Row r, DataSet dataSet, int indice)
+	{
+		super(r.attributes);
+		this.indice = indice;
+		this.dataSet = dataSet;
 	}
 
 	/**

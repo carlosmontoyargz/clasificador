@@ -1,8 +1,8 @@
 package mx.fcc.buap.clasificador.service;
 
 import mx.fcc.buap.clasificador.domain.AttributeType;
-import mx.fcc.buap.clasificador.domain.DataRow;
 import mx.fcc.buap.clasificador.domain.DataSet;
+import mx.fcc.buap.clasificador.domain.Row;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -44,8 +44,7 @@ public class DataSetService
 
 		DataSet dataSet = new DataSet(types, rows, columns);
 		while (lineIterator.hasNext())
-			dataSet.add(new DataRow(
-					dataSet, // TODO
+			dataSet.add(new Row(
 					Arrays
 							.stream(lineIterator.next().split(separator))
 							.map(this::convert)
