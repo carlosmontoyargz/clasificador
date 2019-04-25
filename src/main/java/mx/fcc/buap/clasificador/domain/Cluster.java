@@ -5,6 +5,7 @@ import lombok.Setter;
 import mx.fcc.buap.clasificador.tools.ColorTools;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,14 @@ public class Cluster extends DataSet
 		return row.distance(centroid, getPrecision());
 	}
 
+	public BigDecimal meanDistanceToCentroid()
+	{
+		BigDecimal sum = BigDecimal.ZERO;
+		for (DataRow r : this)
+			sum = sum.add(distanceToCentroid(r));
+		return sum.divide(new BigDecimal(getRowSize()), getPrecision() , RoundingMode.HALF_UP);
+	}
+
 	/**
 	 * Asigna el centroide de este Cluster con el promedio de los DataRow que contiene, y
 	 * retorna un booleano indicando si el nuevo centroide es diferente del anterior.
@@ -48,25 +57,25 @@ public class Cluster extends DataSet
 		}
 	}
 
-	public Map<String, Object> getGraphMap()
+	public Map<String, Object> toJson(int firstColumn, int secondColumn, int thirdColumn)
 	{
 		Map<String, Object> map = new HashMap<>();
-		map.put("data", arrayGraficacion());
+		map.put("data", arrayGraficacion(firstColumn, secondColumn, thirdColumn));
 		map.put("color", rgbColor);
 		return map;
 	}
 
-	private Object[][] arrayGraficacion()
+	private Object[][] arrayGraficacion(int firstColumn, int secondColumn, int thirdColumn)
 	{
 		//String style = "point {size: 3; fill-color: " + rgbColor;
 		Object[][] data = new Object[getRowSize()][];
 		List<DataRow> rows = getRows();
 		for (int i = 0; i < getRowSize(); i++)
-			data[i] = new Object[] {
-					rows.get(i).get(1),
-					rows.get(i).get(2),
-					rows.get(i).get(3),
-					//style
+			data[i] = new Object[]
+			{
+					firstColumn != -1? rows.get(i).get(firstColumn) : BigDecimal.ZERO,
+					firstColumn != -1? rows.get(i).get(secondColumn) : BigDecimal.ZERO,
+					firstColumn != -1? rows.get(i).get(thirdColumn) : BigDecimal.ZERO
 			};
 		return data;
 	}

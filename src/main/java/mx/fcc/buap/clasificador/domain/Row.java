@@ -14,6 +14,13 @@ public class Row
 {
 	protected final BigDecimal[] attributes;
 
+	public static Row zeroRow(int size)
+	{
+		BigDecimal[] at = new BigDecimal[size];
+		Arrays.fill(at, BigDecimal.ZERO);
+		return new Row(at);
+	}
+
 	/**
 	 * Retorna el numero de atributos de este DataRow
 	 * @return el numero de atributos de este DataRow

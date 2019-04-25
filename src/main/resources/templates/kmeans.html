@@ -1,46 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-   <!--<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-   <script th:inline="javascript">
-
-       /*<![CDATA[*/
-       var rows = /*[[${data}]]*/ '';
-       /*]]>*/
-
-       function drawChart() {
-           var data = new google.visualization.DataTable();
-           data.addColumn('number', 'ID');
-           data.addColumn('number', 'Value');
-           data.addColumn( {'type': 'string', 'role': 'style'} );
-           data.addRows(rows);
-
-           var options = {
-           }
-
-           var chart = new google.visualization.ScatterChart(document.getElementById('chart'));
-           chart.draw(data, options);
-       }
-
-       google.load('visualization', '1', {packages: ['corechart'], callback: drawChart});
-   </script>-->
+   <title>Resultados k-means</title>
 </head>
 <body>
-   <h2 th:text="${filename}"></h2>
-   <!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
-   <!--<div id="chart" style="width: 1000px; height: 1000px;"></div>-->
-
    <script src="https://code.highcharts.com/highcharts.js"></script>
    <script src="https://code.highcharts.com/highcharts-3d.js"></script>
    <script src="https://code.highcharts.com/modules/exporting.js"></script>
    <script src="https://code.highcharts.com/modules/export-data.js"></script>
 
-   <div id="container" style="height: 400px; min-width: 310px; max-width: 800px;margin: 0 auto;">
+   <div id="container" style="height: 600px; width: 900px; min-width: 310px; max-width: 800px;margin: 0 auto;">
    </div>
 
    <script th:inline="javascript">
        /*<![CDATA[*/
-       var clusters = /*[[${data}]]*/ '';
+       var clusters = /*[[${clusters}]]*/ '';
+       var filename = /*[[${filename}]]*/ 'Grafica';
        /*]]>*/
 
        // Give the points a 3D feel by adding a radial gradient
@@ -69,11 +44,8 @@
                animation: false,
                options3d: {
                    enabled: true,
-                   /*alpha: 10,
+                   alpha: 10,
                    beta: 30,
-                   depth: 250,*/
-                   alpha: 0,
-                   beta: -90,
                    depth: 250,
                    viewDistance: 5,
                    fitToPlot: false,
@@ -85,7 +57,7 @@
                }
            },
            title: {
-               text: 'Draggable box'
+               text: filename
            },
            subtitle: {
                text: 'Click y arrastrar para girar la grafica'

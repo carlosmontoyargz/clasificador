@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mx.fcc.buap.clasificador.domain.Cluster;
 import mx.fcc.buap.clasificador.domain.DataSet;
+import mx.fcc.buap.clasificador.service.ClusterService;
 import mx.fcc.buap.clasificador.service.DataSetService;
 import mx.fcc.buap.clasificador.storage.StorageFileNotFoundException;
 import mx.fcc.buap.clasificador.storage.StorageService;
@@ -33,6 +34,7 @@ public class KMeansController
 {
 	private final StorageService storageService;
 	private final DataSetService dataSetService;
+	private final ClusterService clusterService;
 
 	@GetMapping("/{filename}")
 	public String kMeans(@PathVariable String filename, Model model)
@@ -60,18 +62,16 @@ public class KMeansController
 
 			clusters.forEach(log::info);
 
-			/*int i = 0;
-			Object[][] data = new Object[ dataSet.getRowSize() ][];
-			for (Cluster c : clusters)
-				for (Object[] o : c.arrayGraficacion())
-					data[i++] = o;*/
-
-			List<Map<String, Object>> clustersMaps = clusters.stream()
-					.map(Cluster::getGraphMap)
+			int[] sortedColumns = clusterService.getSortedColumns(clusters, dataSet.getColumnSize());
+			List<Map<String, Object>> clustersJson = clusters.stream()
+					.map(c -> c.toJson(
+							sortedColumns[0],
+							sortedColumns[1],
+							sortedColumns[2]))
 					.collect(Collectors.toList());
 
 			model.addAttribute("filename", filename);
-			model.addAttribute("data", clustersMaps);
+			model.addAttribute("clusters", clustersJson);
 		}
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);

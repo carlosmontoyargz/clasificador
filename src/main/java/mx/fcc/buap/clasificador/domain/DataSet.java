@@ -220,6 +220,11 @@ public class DataSet implements Iterable<DataRow>
 		return new Row(avg);
 	}
 
+	public Row getStandardDeviationRow()
+	{
+		return getStandardDeviationRow(getAverageRow());
+	}
+
 	/**
 	 * Calcula la desviacion estandar para cada atributo de este DataSet, y retorna el
 	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
