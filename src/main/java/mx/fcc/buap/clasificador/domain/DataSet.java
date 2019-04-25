@@ -28,6 +28,10 @@ public class DataSet implements Iterable<DataRow>
 	private final AttributeType attributeType;
 	private final int columnSize;
 
+	private Row minRow;
+	private Row maxRow;
+	private Row rangeRow;
+
 	private int precision = 25;
 	private final AtomicInteger indiceGenerator = new AtomicInteger(0);
 	private static final AtomicInteger idGenerator = new AtomicInteger(0);
@@ -59,6 +63,9 @@ public class DataSet implements Iterable<DataRow>
 			rows.add(r instanceof DataRow ?
 					(DataRow) r :
 					new DataRow(r, this, indiceGenerator.incrementAndGet()));
+			minRow = null;
+			maxRow = null;
+			rangeRow = null;
 		}
 		else
 			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
@@ -152,6 +159,12 @@ public class DataSet implements Iterable<DataRow>
 		return resultSet;
 	}
 
+	public Row getMinRow()
+	{
+		if (minRow == null) minRow = computeMinRow();
+		return minRow;
+	}
+
 	/**
 	 * Calcula el minimo para cada atributo de este DataSet, y retorna el
 	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
@@ -159,7 +172,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con el minimo de cada atributo de este DataSet
 	 */
-	private Row getMinRow()
+	private Row computeMinRow()
 	{
 		BigDecimal[] min = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -171,6 +184,12 @@ public class DataSet implements Iterable<DataRow>
 		return new Row(min);
 	}
 
+	public Row getMaxRow()
+	{
+		if (maxRow == null) maxRow = computeMaxRow();
+		return maxRow;
+	}
+
 	/**
 	 * Calcula el maximo para cada atributo de este DataSet, y retorna el
 	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
@@ -178,7 +197,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con el maximo de cada atributo de este DataSet
 	 */
-	private Row getMaxRow()
+	private Row computeMaxRow()
 	{
 		BigDecimal[] max = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -190,6 +209,25 @@ public class DataSet implements Iterable<DataRow>
 		return new Row(max);
 	}
 
+	public Row getRangeRow()
+	{
+		if (rangeRow == null) rangeRow = computeRangeRow();
+		return rangeRow;
+	}
+
+	private Row computeRangeRow()
+	{
+		Row max = getMaxRow();
+		Row min = getMinRow();
+
+		BigDecimal[] ranges = new BigDecimal[columnSize];
+		for (int i = 0; i < columnSize; i++)
+			ranges[i] = max.get(i).subtract(min.get(i));
+		log.debug("ranges: {}", Arrays.toString(ranges));
+
+		return new Row(ranges);
+	}
+
 	/**
 	 * Normaliza este DataSet mediante el metodo z-score, y retorna el resultado en un
 	 * DataSet nuevo.
@@ -198,8 +236,8 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public DataSet zScore()
 	{
-		Row average = getAverageRow();
-		Row standardDeviation = getStandardDeviationRow(average);
+		Row average = computeAverageRow();
+		Row standardDeviation = computeStandardDeviationRow(average);
 
 		DataSet resultSet = new DataSet(
 				attributeType,
@@ -218,7 +256,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con el promedio de cada atributo de este DataSet
 	 */
-	public Row getAverageRow()
+	public Row computeAverageRow()
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -230,9 +268,9 @@ public class DataSet implements Iterable<DataRow>
 		return new Row(avg);
 	}
 
-	public Row getStandardDeviationRow()
+	public Row computeStandardDeviationRow()
 	{
-		return getStandardDeviationRow(getAverageRow());
+		return computeStandardDeviationRow(computeAverageRow());
 	}
 
 	/**
@@ -242,7 +280,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con la desviacion estandar de cada atributo de este DataSet
 	 */
-	private Row getStandardDeviationRow(Row averageRow)
+	private Row computeStandardDeviationRow(Row averageRow)
 	{
 		BigDecimal[] stdv = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -288,7 +326,7 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	private int[] getMaxOrderMagnitude()
 	{
-		Row absMaxRow = getAbsoluteMaxRow();
+		Row absMaxRow = computeAbsoluteMaxRow();
 		int[] j = new int[columnSize];
 		for (int i = 0; i < columnSize; i++)
 		{
@@ -316,7 +354,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con el maximo absoluto de cada atributo de este DataSet
 	 */
-	private Row getAbsoluteMaxRow()
+	private Row computeAbsoluteMaxRow()
 	{
 		BigDecimal[] absmax = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)

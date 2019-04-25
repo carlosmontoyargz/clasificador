@@ -47,7 +47,7 @@ public class Cluster extends DataSet
 	 */
 	public boolean recomputeCentroid()
 	{
-		Row averageRow = getAverageRow();
+		Row averageRow = computeAverageRow();
 		if (centroid.equals(averageRow))
 			return false;
 		else

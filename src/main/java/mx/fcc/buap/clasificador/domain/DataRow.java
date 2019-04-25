@@ -108,6 +108,8 @@ public class DataRow extends Row
 
 	private BigDecimal distance(int column, BigDecimal other)
 	{
+		Row rangeRow = dataSet.getRangeRow();
+
 		if (other == null)
 			return ONE;
 		if (dataSet.isNominal(column))
@@ -116,7 +118,10 @@ public class DataRow extends Row
 		else
 			return attributes[column]
 					.subtract(other)
-					.abs(); // FIXME hay que dividir entre el rango
+					.abs()
+					.divide(rangeRow.attributes[column],
+							dataSet.getPrecision(),
+							RoundingMode.HALF_UP);
 	}
 
 	@Override
