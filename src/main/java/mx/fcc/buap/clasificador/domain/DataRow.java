@@ -25,8 +25,8 @@ public class DataRow extends Row
 	public DataRow(DataSet dataSet, BigDecimal[] attributes)
 	{
 		super(attributes);
-		this.id = counter.incrementAndGet();
 		this.dataSet = dataSet;
+		this.id = counter.incrementAndGet();
 	}
 
 	public DataRow(Row r, DataSet dataSet)
@@ -98,23 +98,25 @@ public class DataRow extends Row
 		return new DataRow(dataSet, normalized);
 	}
 
-	public BigDecimal compareTo(Row other, int precision)
+	public BigDecimal distance(Row other, int precision)
 	{
 		BigDecimal r = ZERO;
 		for (int i = 0; i < attributes.length; i++)
-			r = r.add( distance(i, other.attributes[i])
-					.pow(2) );
+			r = r.add( distance(i, other.attributes[i]).pow(2) );
 		return MathTools.sqrt(r, precision);
 	}
 
 	private BigDecimal distance(int column, BigDecimal other)
 	{
-		if (other == null) return ONE;
-
+		if (other == null)
+			return ONE;
 		if (dataSet.isNominal(column))
-			return attributes[column].equals(other) ? ZERO : ONE;
+			return attributes[column]
+					.equals(other) ? ZERO : ONE;
 		else
-			return attributes[column].subtract(other).abs(); // FIXME hay que dividir entre el rango
+			return attributes[column]
+					.subtract(other)
+					.abs(); // FIXME hay que dividir entre el rango
 	}
 
 	@Override

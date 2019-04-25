@@ -1,5 +1,7 @@
 package mx.fcc.buap.clasificador.domain;
 
+import lombok.Getter;
+
 import java.math.BigDecimal;
 
 /**
@@ -8,6 +10,7 @@ import java.math.BigDecimal;
  */
 public class Cluster extends DataSet
 {
+	@Getter
 	private Row centroid;
 
 	public Cluster(DataSet dataSet, Row centroid)
@@ -18,12 +21,53 @@ public class Cluster extends DataSet
 
 	public BigDecimal distanceToCentroid(DataRow row)
 	{
-		return row.compareTo(centroid, getPrecision());
+		return row.distance(centroid, getPrecision());
 	}
 
-	public Row computeCentroid()
+	/**
+	 * Asigna el centroide de este Cluster con el promedio de los DataRow que contiene, y
+	 * retorna un booleano indicando si el nuevo centroide es diferente del anterior.
+	 *
+	 * @return si el centroide nuevo es diferente del anterior.
+	 */
+	public boolean recomputeCentroid()
 	{
-		centroid = new Row(new BigDecimal[0]);
-		return centroid;
+		Row averageRow = getAverageRow();
+		if (centroid.equals(averageRow))
+			return false;
+		else
+		{
+			centroid = averageRow;
+			return true;
+		}
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Cluster{\n" +
+				"centroid=" + centroid + "\n" +
+				super.toString() +
+				"} ";
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		if (!super.equals(o)) return false;
+
+		Cluster other = (Cluster) o;
+		return centroid.equals(other.centroid);
+
+	}
+
+	@Override
+	public int hashCode()
+	{
+		int result = super.hashCode();
+		result = 31 * result + centroid.hashCode();
+		return result;
 	}
 }

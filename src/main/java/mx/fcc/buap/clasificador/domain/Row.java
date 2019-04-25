@@ -3,6 +3,7 @@ package mx.fcc.buap.clasificador.domain;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 /**
  * @author Carlos Montoya
@@ -22,4 +23,22 @@ public class Row
 	public BigDecimal get(int i) { return attributes[i]; }
 
 	public void set(int i, BigDecimal n) { attributes[i] = n; }
+
+	@Override
+	public boolean equals(Object o) // fixme add test
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Row row = (Row) o;
+
+		return Arrays.equals(attributes, row.attributes);
+
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Arrays.hashCode(attributes);
+	}
 }

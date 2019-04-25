@@ -22,10 +22,13 @@ import static java.math.BigDecimal.ZERO;
 @Log4j2
 public class DataSet implements Iterable<DataRow>
 {
+	private final int id = counter.incrementAndGet();
 	private final List<DataRow> rows;
 	private final int columnSize;
 	private final AttributeType attributeType;
 	private int precision = 25;
+
+	private static final AtomicInteger counter = new AtomicInteger(0);
 
 	public DataSet(AttributeType type, int rowSize, int columnSize)
 	{
@@ -63,42 +66,61 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public Set<Cluster> kMeans(int k)
 	{
-		Set<Cluster> clusters = getRandomRows(k).stream()
-				.map(r -> new Cluster(this, r))
-				.collect(Collectors.toSet());
-
-		rows
-				.forEach(r ->
-				{
-					Cluster nearest;
-					BigDecimal min = ZERO;
-					for (Cluster c : clusters)
-					{
-						BigDecimal distance = c.distanceToCentroid(r);
-						if (distance.compareTo(min) < 0)
-						{
-							nearest = c;
-							min = distance;
-						}
-					}
-
-
-				});
-
-		return null;
+		Set<Cluster> clusters = getRandomEmptyClusters(k);
+		do
+		{
+			clusters.forEach(DataSet::removeAll);
+			rows.forEach(r -> assignRowToClosestCluster(r, clusters));
+			clusters.forEach(Cluster::recomputeCentroid);
+		}
+		while (recomputeCentroids(clusters));
+		return clusters;
 	}
 
-	private List<DataRow> getRandomRows(int k)
+	private Set<Cluster> getRandomEmptyClusters(int k)
 	{
-		if (rows.size() < k) return Collections.emptyList();
-		List<DataRow> centroids = new ArrayList<>();
+		if (rows.size() < k) return Collections.emptySet();
+
+		Set<DataRow> centroids = new HashSet<>(k);
 		while (centroids.size() < k)
+				centroids.add(rows
+						.get((int) (Math.random() * rows.size())));
+		return centroids
+				.stream()
+				.map(r -> new Cluster(this, r))
+				.collect(Collectors.toSet());
+	}
+
+	private void assignRowToClosestCluster(DataRow row, Set<Cluster> clusters)
+	{
+		Cluster nearest = null;
+		BigDecimal min = BigDecimal.valueOf(Long.MAX_VALUE);
+		for (Cluster c : clusters)
 		{
-			DataRow randomRow = rows.get((int) (Math.random() * rows.size()));
-			if (!centroids.contains(randomRow))
-				centroids.add(randomRow);
+			BigDecimal distance = c.distanceToCentroid(row);
+			if (distance.compareTo(min) < 0)
+			{
+				nearest = c;
+				min = distance;
+			}
 		}
-		return centroids;
+		if (nearest != null) nearest.add(row);
+	}
+
+	/**
+	 * Recalcula los centroides de los clusters especificados, y retorna true
+	 * si cambio alguno de los centroides.
+	 *
+	 * @param clusters El conjunto de clusters
+	 * @return si alguno de los centroides cambio
+	 */
+	private boolean recomputeCentroids(Set<Cluster> clusters)
+	{
+		return clusters.stream()
+				.map(Cluster::recomputeCentroid)
+				.filter(b -> b)
+				.findFirst()
+				.orElse(false);
 	}
 
 	/**
@@ -186,7 +208,7 @@ public class DataSet implements Iterable<DataRow>
 	 *
 	 * @return Un Row con el promedio de cada atributo de este DataSet
 	 */
-	private Row getAverageRow()
+	public Row getAverageRow()
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
@@ -291,20 +313,19 @@ public class DataSet implements Iterable<DataRow>
 	}
 
 	/**
-	 * Retorna un Stream de los valores de la columna especificada.
+	 * Retorna un Stream con los valores de la columna especificada.
 	 *
 	 * @param column numero de la columna a calcular
-	 * @return un Stream de los valores de una columna
+	 * @return un Stream con los valores de una columna especifica.
 	 */
 	private Stream<BigDecimal> getColumnStream(int column)
 	{
 		return rows.stream().map(row -> row.get(column));
 	}
 
-	public int getRowSize()
-	{
-		return rows.size();
-	}
+	public int getRowSize() { return rows.size(); }
+
+	public void removeAll() { rows.removeIf(r -> true); }
 
 	/**
 	 * Retorna true si la columna especificada es atributo de tipo numerico.
@@ -312,10 +333,7 @@ public class DataSet implements Iterable<DataRow>
 	 * @param c El numero de columna
 	 * @return Si el tipo de atributo es numerico.
 	 */
-	public boolean isNumerical(int c)
-	{
-		return attributeType.isNumerical(c);
-	}
+	public boolean isNumerical(int c) { return attributeType.isNumerical(c); }
 
 	/**
 	 * Retorna true si la columna especificada es atributo de tipo nominal.
@@ -323,13 +341,28 @@ public class DataSet implements Iterable<DataRow>
 	 * @param c El numero de columna
 	 * @return Si el tipo de atributo es nominal.
 	 */
-	public boolean isNominal(int c)
-	{
-		return attributeType.isNominal(c);
-	}
+	public boolean isNominal(int c) { return attributeType.isNominal(c); }
 
 	@Override
 	public Iterator<DataRow> iterator() { return rows.iterator(); }
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		DataSet dataRows = (DataSet) o;
+
+		return id == dataRows.id;
+
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return id;
+	}
 
 	/**
 	 * Representa este DataSet en un String
@@ -346,10 +379,10 @@ public class DataSet implements Iterable<DataRow>
 				.append(r)
 				.append("\n"));
 
-		return "DataSet{" +
-				"attributeType=" + attributeType +
-				", columnSize=" + columnSize +
-				", rows={\n" + sb.toString() + "}" +
+		return "DataSet{\n" +
+				"columnSize=" + columnSize + "\n" +
+				"attributeType=" + attributeType + "\n" +
+				"rows={\n" + sb.toString() + "}" +
 				'}';
 	}
 }

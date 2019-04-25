@@ -40,6 +40,12 @@ public class KMeansService
 
 			log.info("------------------- Decimal Scaling ---------------------------------");
 			log.info(dataSet.decimalScaling());
+
+			log.info("------------------- k-means ---------------------------------");
+			dataSet
+					.minMax(BigDecimal.ZERO, BigDecimal.ONE)
+					.kMeans(5)
+					.forEach(log::info);
 		}
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
