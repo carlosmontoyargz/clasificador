@@ -64,7 +64,7 @@ public class DataSet implements Iterable<DataRow>
 	 * @param k El numero de clusters
 	 * @return El conjunto de clusters encontrados.
 	 */
-	public Set<Cluster> kMeans(int k)
+	public ClusterSet kMeans(int k)
 	{
 		Set<Cluster> clusters = getRandomEmptyClusters(k);
 		do
@@ -74,7 +74,7 @@ public class DataSet implements Iterable<DataRow>
 			clusters.forEach(Cluster::recomputeCentroid);
 		}
 		while (recomputeCentroids(clusters));
-		return clusters;
+		return new ClusterSet(clusters);
 	}
 
 	private Set<Cluster> getRandomEmptyClusters(int k)
