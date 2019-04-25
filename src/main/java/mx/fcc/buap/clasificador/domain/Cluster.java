@@ -5,7 +5,9 @@ import lombok.Setter;
 import mx.fcc.buap.clasificador.tools.ColorTools;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Carlos Montoya
@@ -46,15 +48,26 @@ public class Cluster extends DataSet
 		}
 	}
 
-	public Object[][] arrayGraficacion()
+	public Map<String, Object> getGraphMap()
 	{
-		Object[][] data = new Object[getRowSize()][];
-		String style = "point {size: 2; fill-color: " + rgbColor;
+		Map<String, Object> map = new HashMap<>();
+		map.put("data", arrayGraficacion());
+		map.put("color", rgbColor);
+		return map;
+	}
 
+	private Object[][] arrayGraficacion()
+	{
+		//String style = "point {size: 3; fill-color: " + rgbColor;
+		Object[][] data = new Object[getRowSize()][];
 		List<DataRow> rows = getRows();
 		for (int i = 0; i < getRowSize(); i++)
-			data[i] = new Object[] {rows.get(i).get(1), rows.get(i).get(2), style};
-
+			data[i] = new Object[] {
+					rows.get(i).get(1),
+					rows.get(i).get(2),
+					rows.get(i).get(3),
+					//style
+			};
 		return data;
 	}
 

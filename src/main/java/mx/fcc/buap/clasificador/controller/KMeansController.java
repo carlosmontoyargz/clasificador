@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Carlos Montoya
@@ -57,14 +60,18 @@ public class KMeansController
 
 			clusters.forEach(log::info);
 
-			int i = 0;
+			/*int i = 0;
 			Object[][] data = new Object[ dataSet.getRowSize() ][];
 			for (Cluster c : clusters)
 				for (Object[] o : c.arrayGraficacion())
-					data[i++] = o;
+					data[i++] = o;*/
+
+			List<Map<String, Object>> clustersMaps = clusters.stream()
+					.map(Cluster::getGraphMap)
+					.collect(Collectors.toList());
 
 			model.addAttribute("filename", filename);
-			model.addAttribute("data", data);
+			model.addAttribute("data", clustersMaps);
 		}
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);

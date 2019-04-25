@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <!--<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
    <script th:inline="javascript">
 
        /*<![CDATA[*/
@@ -23,11 +23,146 @@
        }
 
        google.load('visualization', '1', {packages: ['corechart'], callback: drawChart});
-   </script>
+   </script>-->
 </head>
 <body>
    <h2 th:text="${filename}"></h2>
    <!--<div id="chart_div" style="width: 900px; height: 500px;"></div>-->
-   <div id="chart" style="width: 1000px; height: 1000px;"></div>
+   <!--<div id="chart" style="width: 1000px; height: 1000px;"></div>-->
+
+   <script src="https://code.highcharts.com/highcharts.js"></script>
+   <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+   <script src="https://code.highcharts.com/modules/exporting.js"></script>
+   <script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+   <div id="container" style="height: 400px; min-width: 310px; max-width: 800px;margin: 0 auto;">
+   </div>
+
+   <script th:inline="javascript">
+       /*<![CDATA[*/
+       var clusters = /*[[${data}]]*/ '';
+       /*]]>*/
+
+       // Give the points a 3D feel by adding a radial gradient
+       Highcharts.setOptions({
+           colors: Highcharts.getOptions().colors.map(function (color) {
+               return {
+                   radialGradient: {
+                       cx: 0.4,
+                       cy: 0.3,
+                       r: 0.5
+                   },
+                   stops: [
+                       [0, color],
+                       [1, Highcharts.Color(color).brighten(-0.2).get('rgb')]
+                   ]
+               };
+           })
+       });
+
+       // Set up the chart
+       var chart = new Highcharts.Chart({
+           chart: {
+               renderTo: 'container',
+               margin: 100,
+               type: 'scatter3d',
+               animation: false,
+               options3d: {
+                   enabled: true,
+                   /*alpha: 10,
+                   beta: 30,
+                   depth: 250,*/
+                   alpha: 0,
+                   beta: -90,
+                   depth: 250,
+                   viewDistance: 5,
+                   fitToPlot: false,
+                   frame: {
+                       bottom: { size: 1, color: 'rgba(0,0,0,0.02)' },
+                       back: { size: 1, color: 'rgba(0,0,0,0.04)' },
+                       side: { size: 1, color: 'rgba(0,0,0,0.06)' }
+                   }
+               }
+           },
+           title: {
+               text: 'Draggable box'
+           },
+           subtitle: {
+               text: 'Click y arrastrar para girar la grafica'
+           },
+           plotOptions: {
+               scatter: {
+                   width: 10,
+                   height: 10,
+                   depth: 10
+               }
+           },/*
+           yAxis: {
+               min: 0,
+               max: 10,
+               title: null
+           },
+           xAxis: {
+               min: 0,
+               max: 10,
+               gridLineWidth: 1
+           },
+           zAxis: {
+               min: 0,
+               max: 10,
+               showFirstLabel: false
+           },*/
+           legend: {
+               enabled: false
+           },
+           series: clusters
+       });
+
+       // Add mouse and touch events for rotation
+       (function (H) {
+           function dragStart(eStart) {
+               eStart = chart.pointer.normalize(eStart);
+
+               var posX = eStart.chartX,
+                   posY = eStart.chartY,
+                   alpha = chart.options.chart.options3d.alpha,
+                   beta = chart.options.chart.options3d.beta,
+                   sensitivity = 5,  // lower is more sensitive
+                   handlers = [];
+
+               function drag(e) {
+                   // Get e.chartX and e.chartY
+                   e = chart.pointer.normalize(e);
+
+                   chart.update({
+                       chart: {
+                           options3d: {
+                               alpha: alpha + (e.chartY - posY) / sensitivity,
+                               beta: beta + (posX - e.chartX) / sensitivity
+                           }
+                       }
+                   }, undefined, undefined, false);
+               }
+
+               function unbindAll() {
+                   handlers.forEach(function (unbind) {
+                       if (unbind) {
+                           unbind();
+                       }
+                   });
+                   handlers.length = 0;
+               }
+
+               handlers.push(H.addEvent(document, 'mousemove', drag));
+               handlers.push(H.addEvent(document, 'touchmove', drag));
+
+
+               handlers.push(H.addEvent(document, 'mouseup', unbindAll));
+               handlers.push(H.addEvent(document, 'touchend', unbindAll));
+           }
+           H.addEvent(chart.container, 'mousedown', dragStart);
+           H.addEvent(chart.container, 'touchstart', dragStart);
+       }(Highcharts));
+   </script>
 </body>
 </html>
