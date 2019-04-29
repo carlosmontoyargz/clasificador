@@ -18,7 +18,6 @@ import java.util.Map;
 public class Cluster extends DataSet
 {
 	private Row centroid;
-	private String rgbColor = ColorTools.getRandomColorRGB();
 
 	public Cluster(DataSet dataSet, Row centroid)
 	{
@@ -61,7 +60,7 @@ public class Cluster extends DataSet
 	{
 		Map<String, Object> map = new HashMap<>();
 		map.put("data", arrayGraficacion(firstColumn, secondColumn, thirdColumn));
-		map.put("color", rgbColor);
+		map.put("color", ColorTools.getRandomColorRGB());
 		return map;
 	}
 

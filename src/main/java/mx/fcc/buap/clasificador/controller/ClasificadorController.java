@@ -11,41 +11,44 @@ import mx.fcc.buap.clasificador.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * @author Carlos Montoya
  * @since 19/04/2019
  */
 @Controller
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 @RequestMapping("/clasificador")
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Log4j2
 public class ClasificadorController
 {
 	private final StorageService storageService;
 	private final DataSetService dataSetService;
 
+	private static final String[] normalizationMethods = new String[]
+			{ "min-max", "z-score", "decimal-scaling" };
+
 	@GetMapping("")
-	public String getOptions(@RequestParam String filename, Model model)
+	public String parametrosClasificacion(@RequestParam String filename, Model model)
 	{
-		ClusterForm clusterForm = new ClusterForm();
-		List<String> methods = clusterForm.getMethods();
-		methods.add("min-max");
-		methods.add("z-score");
-		methods.add("decimal-scaling");
-
-		model.addAttribute("methods", methods);
 		model.addAttribute("filename", filename);
+		model.addAttribute("form", new ClusterForm());
+		return "parametros-clasificacion";
+	}
 
-		return "normalization";
+	@PostMapping("")
+	public String parametrosClasificacionPost(@ModelAttribute("form") ClusterForm form,
+	                                          @RequestParam("filename") String filename,
+	                                          RedirectAttributes redirectAttributes)
+	{
+		redirectAttributes.addAttribute("method", form.getMethod());
+		redirectAttributes.addAttribute("numberOfClusters", form.getNumberOfClusters());
+		return "redirect:/clasificador/" + filename;
 	}
 
 	@GetMapping("/{filename}")
@@ -88,14 +91,6 @@ public class ClasificadorController
 		return "resultado-clasificacion";
 	}
 
-	/*@PostMapping("")
-	public String receiveClusterForm(@ModelAttribute ClusterForm form, @RequestParam String filename)
-	{
-		log.info(form);
-		return "redirect:/" +
-				form.getMethods().get(0) +
-				"/" +
-				filename +
-				"?numberOfClusters=" + form.getNumberOfClusters();
-	}*/
+	@ModelAttribute("normalizationMethods")
+	public String[] getNormalizationMethods() { return normalizationMethods; }
 }

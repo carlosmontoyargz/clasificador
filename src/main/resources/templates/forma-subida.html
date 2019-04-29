@@ -1,10 +1,5 @@
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es">
 <body>
-
-   <div th:if="${message}">
-      <h2 th:text="${message}"></h2>
-   </div>
-
    <div>
       <form method="POST" enctype="multipart/form-data" action="/">
          <table>
@@ -13,14 +8,5 @@
          </table>
       </form>
    </div>
-
-   <div>
-      <ul>
-         <li th:each="file:${files}">
-            <a th:href="${file}" th:text="${file}"></a>
-         </li>
-      </ul>
-   </div>
-
 </body>
 </html>

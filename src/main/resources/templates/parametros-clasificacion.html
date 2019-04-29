@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+   <meta charset="UTF-8">
+   <title>Escoger metodo de normalizacion</title>
+</head>
+<body>
+   <h2 th:text="${filename}">Filename</h2>
+
+   <form method="post" th:object="${form}" th:action="@{/clasificador(filename=${filename})}">
+      <div>
+         <label>
+            Número de clusters:
+            <input type="text" th:field="*{numberOfClusters}" />
+         </label>
+      </div>
+      <div>
+         <label>
+            Método de normalización:
+            <select th:field="*{method}">
+               <option
+                     th:each="method:${normalizationMethods}"
+                     th:value="${method}"
+                     th:text="${method}" ></option>
+            </select>
+         </label>
+      </div>
+      <input type="submit" value="Calcular clusters">
+   </form>
+</body>
+</html>

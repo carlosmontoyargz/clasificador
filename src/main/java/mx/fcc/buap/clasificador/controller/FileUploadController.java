@@ -10,11 +10,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 @Controller
 public class FileUploadController {
@@ -29,17 +27,7 @@ public class FileUploadController {
 	@GetMapping("/")
 	public String listUploadedFiles(Model model) throws IOException
 	{
-		model.addAttribute("files",
-							storageService
-									.loadAll()
-									.map(path -> MvcUriComponentsBuilder
-											.fromMethodName(FileUploadController.class,
-															"serveFile",
-															path.getFileName().toString())
-											.build()
-											.toString())
-									.collect(Collectors.toList()));
-		return "uploadForm";
+		return "forma-subida";
 	}
 
 	@PostMapping("/")
@@ -48,9 +36,6 @@ public class FileUploadController {
 
 		storageService.store(file);
 		redirectAttributes.addAttribute("filename", file.getOriginalFilename());
-		redirectAttributes.addFlashAttribute("message",
-				"Has subido exitosamente el archivo " + file.getOriginalFilename() + "!");
-
 		return "redirect:/clasificador";
 	}
 
