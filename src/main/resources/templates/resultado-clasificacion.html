@@ -4,25 +4,26 @@
    <title>Resultados k-means</title>
 </head>
 <body>
-   <script src="https://code.highcharts.com/highcharts.js"></script>
-   <script src="https://code.highcharts.com/highcharts-3d.js"></script>
-   <script src="https://code.highcharts.com/modules/exporting.js"></script>
-   <script src="https://code.highcharts.com/modules/export-data.js"></script>
-
-   <div id="container" style="height: 600px; width: 900px; min-width: 310px; max-width: 800px;margin: 0 auto;">
+   <div
+         id="container"
+         style="height: 600px; width: 900px; min-width: 310px; max-width: 800px;margin: 0 auto;">
    </div>
-
    <div>
       <a th:href="@{'/files/'+${resultFilename}}">Descargar archivo de resultado</a>
    </div>
 
+   <script src="https://code.highcharts.com/highcharts.js"></script>
+   <script src="https://code.highcharts.com/highcharts-3d.js"></script>
+   <script src="https://code.highcharts.com/modules/exporting.js"></script>
+   <script src="https://code.highcharts.com/modules/export-data.js"></script>
    <script th:inline="javascript">
+       /* Datos de resultados asignados en el controlador */
        /*<![CDATA[*/
+       var filename = /*[[${filename}]]*/ 'filename';
        var clusters = /*[[${clusters}]]*/ '';
-       var filename = /*[[${filename}]]*/ 'Grafica';
        /*]]>*/
 
-       // Give the points a 3D feel by adding a radial gradient
+       // Puntos 3D
        Highcharts.setOptions({
            colors: Highcharts.getOptions().colors.map(function (color) {
                return {
@@ -39,7 +40,7 @@
            })
        });
 
-       // Set up the chart
+       // Configuracion de la grafica
        var chart = new Highcharts.Chart({
            chart: {
                renderTo: 'container',
@@ -72,7 +73,8 @@
                    height: 10,
                    depth: 10
                }
-           },/*
+           },
+           /*
            yAxis: {
                min: 0,
                max: 10,
@@ -87,14 +89,15 @@
                min: 0,
                max: 10,
                showFirstLabel: false
-           },*/
+           },
+           */
            legend: {
                enabled: false
            },
            series: clusters
        });
 
-       // Add mouse and touch events for rotation
+       // Eventos de mouse para rotacion
        (function (H) {
            function dragStart(eStart) {
                eStart = chart.pointer.normalize(eStart);

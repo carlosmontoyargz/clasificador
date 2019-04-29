@@ -6,7 +6,9 @@
 </head>
 <body>
    <div th:each="m : ${methods}">
-      <a th:href="@{'/clasificador/'+${m}+'/'+${filename}(numberOfClusters=5)}" th:text="${m}"></a>
+      <a th:href="@{'/clasificador/' + ${filename} (method = ${m}, numberOfClusters = 5)}"
+         th:text="${m}">
+      </a>
    </div>
 </body>
 </html>

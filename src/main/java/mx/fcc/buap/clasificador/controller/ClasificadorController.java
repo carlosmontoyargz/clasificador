@@ -48,11 +48,10 @@ public class ClasificadorController
 		return "normalization";
 	}
 
-	@GetMapping("/{method}/{filename}")
-	public String kMeans(@PathVariable String method,
-	                     @PathVariable String filename,
-	                     @RequestParam int numberOfClusters,
-	                     Model model)
+	@GetMapping("/{filename}")
+	public String clasificar(@PathVariable String filename,
+	                         @RequestParam String method,
+	                         @RequestParam int numberOfClusters, Model model)
 	{
 		try
 		{
@@ -86,7 +85,7 @@ public class ClasificadorController
 		catch (IOException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
 		}
-		return "kmeans";
+		return "resultado-clasificacion";
 	}
 
 	/*@PostMapping("")
