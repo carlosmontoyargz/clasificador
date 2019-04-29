@@ -26,10 +26,10 @@ public class ClusterSet
 
 		int[] sortedColumns = getSortedColumns();
 		return clusters.stream()
-				.map(c -> c.toJson(
-						sortedColumns[0],
-						sortedColumns[1],
-						sortedColumns[2]))
+				.map(c -> c
+						.toJson(sortedColumns[0],
+								sortedColumns[1],
+								sortedColumns[2]))
 				.collect(Collectors.toList());
 	}
 
@@ -51,9 +51,11 @@ public class ClusterSet
 				.sorted(Comparator.comparing(i -> distances[i]))
 				.mapToInt(ele -> ele)
 				.toArray();
-		log.info("Total sum standard mean distances : {}", Arrays.toString(distances));
+		log.info("Total sum mean distances : {}", Arrays.toString(distances));
 		log.info("Sorted column indices : {}", Arrays.toString(sortedIndices));
+
 		return sortedIndices;
+		//return new int[]{2, 3, 21};
 	}
 
 	@Override

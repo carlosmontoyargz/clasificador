@@ -222,7 +222,8 @@ public class DataSet implements Iterable<DataRow>
 
 		BigDecimal[] ranges = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			ranges[i] = max.get(i).subtract(min.get(i));
+			ranges[i] = isNominal(i) ? ZERO:
+					max.get(i).subtract(min.get(i));
 		log.debug("ranges: {}", Arrays.toString(ranges));
 
 		return new Row(ranges);
@@ -252,7 +253,7 @@ public class DataSet implements Iterable<DataRow>
 	/**
 	 * Calcula el promedio para cada atributo de este DataSet, y retorna el
 	 * resultado en un Row nuevo. Si el atributo es de tipo nominal, entonces
-	 * el resultado asignado para esa columna es 0
+	 * el resultado asignado es la moda de esa columna.
 	 *
 	 * @return Un Row con el promedio de cada atributo de este DataSet
 	 */
@@ -260,18 +261,46 @@ public class DataSet implements Iterable<DataRow>
 	{
 		BigDecimal[] avg = new BigDecimal[columnSize];
 		for (int i = 0; i < columnSize; i++)
-			avg[i] = isNominal(i) ? ZERO :
-					getColumnStream(i)
-							.reduce(ZERO, BigDecimal::add)
-							.divide(new BigDecimal(rows.size()), RoundingMode.HALF_UP);
+			avg[i] = isNominal(i) ? mode(i) :
+					average(i);
+
 		log.debug("average: {}", Arrays.toString(avg));
 		return new Row(avg);
 	}
 
-	public Row computeStandardDeviationRow()
+	private BigDecimal average(int column)
 	{
-		return computeStandardDeviationRow(computeAverageRow());
+		return getColumnStream(column)
+				.reduce(ZERO, BigDecimal::add)
+				.divide(new BigDecimal(rows.size()),
+						precision, RoundingMode.HALF_UP);
 	}
+
+	private BigDecimal mode(int column)
+	{
+		BigDecimal[] columnValues = getColumnStream(column).toArray(BigDecimal[]::new);
+
+		BigDecimal maxValue = ZERO;
+		int maxCount = 0, i, j;
+		for (i = 0; i < columnValues.length; ++i)
+		{
+			int count = 0;
+			for (j = 0; j < columnValues.length; ++j)
+				if (columnValues[j].equals(columnValues[i]))
+					++count;
+
+			if (count > maxCount) {
+				maxCount = count;
+				maxValue = columnValues[i];
+			}
+		}
+		return maxValue;
+	}
+
+//	public Row computeStandardDeviationRow()
+//	{
+//		return computeStandardDeviationRow(computeAverageRow());
+//	}
 
 	/**
 	 * Calcula la desviacion estandar para cada atributo de este DataSet, y retorna el

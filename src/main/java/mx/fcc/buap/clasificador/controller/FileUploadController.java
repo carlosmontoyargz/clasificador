@@ -29,21 +29,17 @@ public class FileUploadController {
 	@GetMapping("/")
 	public String listUploadedFiles(Model model) throws IOException
 	{
-		model.addAttribute("files", storageService.loadAll().map(
-				path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
-						"serveFile", path.getFileName().toString()).build().toString())
-				.collect(Collectors.toList()));
-
+		model.addAttribute("files",
+							storageService
+									.loadAll()
+									.map(path -> MvcUriComponentsBuilder
+											.fromMethodName(FileUploadController.class,
+															"serveFile",
+															path.getFileName().toString())
+											.build()
+											.toString())
+									.collect(Collectors.toList()));
 		return "uploadForm";
-	}
-
-	@GetMapping("/files/{filename:.+}")
-	@ResponseBody
-	public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-
-		Resource file = storageService.loadAsResource(filename);
-		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-				"attachment; filename=\"" + file.getFilename() + "\"").body(file);
 	}
 
 	@PostMapping("/")
@@ -51,10 +47,23 @@ public class FileUploadController {
 	                               RedirectAttributes redirectAttributes) {
 
 		storageService.store(file);
+		redirectAttributes.addAttribute("filename", file.getOriginalFilename());
 		redirectAttributes.addFlashAttribute("message",
-				"You successfully uploaded " + file.getOriginalFilename() + "!");
+				"Has subido exitosamente el archivo " + file.getOriginalFilename() + "!");
 
-		return "redirect:/clasificador?filename=" + file.getOriginalFilename();
+		return "redirect:/clasificador";
+	}
+
+	@GetMapping("/files/{filename:.+}")
+	@ResponseBody
+	public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+
+		Resource file = storageService.loadAsResource(filename);
+		return ResponseEntity
+				.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + file.getFilename() + "\"")
+				.body(file);
 	}
 
 	@ExceptionHandler(StorageFileNotFoundException.class)

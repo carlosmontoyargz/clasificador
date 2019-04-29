@@ -34,8 +34,10 @@ public class DataSetService
 		AttributeType types = null;
 
 		Iterator<String> lineIterator = Files.readAllLines(file).iterator();
-		if (lineIterator.hasNext()) rows = Integer.valueOf(lineIterator.next());
-		if (lineIterator.hasNext()) columns = Integer.valueOf(lineIterator.next());
+		if (lineIterator.hasNext()) rows =
+				Integer.valueOf(lineIterator.next().split(separator)[0]);
+		if (lineIterator.hasNext())
+			columns = Integer.valueOf(lineIterator.next().split(separator)[0]);
 		if (lineIterator.hasNext())
 			types = new AttributeType(Arrays
 					.stream(lineIterator.next().split(separator))
@@ -45,8 +47,7 @@ public class DataSetService
 		DataSet dataSet = new DataSet(types, rows, columns);
 		while (lineIterator.hasNext())
 			dataSet.add(new Row(
-					Arrays
-							.stream(lineIterator.next().split(separator))
+					Arrays.stream(lineIterator.next().split(separator))
 							.map(this::convert)
 							.toArray(BigDecimal[]::new)));
 		return dataSet;

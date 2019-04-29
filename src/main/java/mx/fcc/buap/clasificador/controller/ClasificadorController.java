@@ -11,7 +11,10 @@ import mx.fcc.buap.clasificador.storage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -43,17 +46,6 @@ public class ClasificadorController
 		model.addAttribute("filename", filename);
 
 		return "normalization";
-	}
-
-	@PostMapping("")
-	public String receiveClusterForm(@ModelAttribute ClusterForm form, @RequestParam String filename)
-	{
-		log.info(form);
-		return "redirect:/" +
-				form.getMethods().get(0) +
-				"/" +
-				filename +
-				"?numberOfClusters=" + form.getNumberOfClusters();
 	}
 
 	@GetMapping("/{method}/{filename}")
@@ -96,4 +88,15 @@ public class ClasificadorController
 		}
 		return "kmeans";
 	}
+
+	/*@PostMapping("")
+	public String receiveClusterForm(@ModelAttribute ClusterForm form, @RequestParam String filename)
+	{
+		log.info(form);
+		return "redirect:/" +
+				form.getMethods().get(0) +
+				"/" +
+				filename +
+				"?numberOfClusters=" + form.getNumberOfClusters();
+	}*/
 }
