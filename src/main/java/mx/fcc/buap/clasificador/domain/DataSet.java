@@ -79,7 +79,14 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public ClusterSet kMeans(int k)
 	{
-		Set<Cluster> clusters = getRandomEmptyClusters(k);
+		return kMeans(k, null);
+	}
+
+	public ClusterSet kMeans(int k, List<Row> centroids)
+	{
+		Set<Cluster> clusters = centroids != null && centroids.size() > 0 ?
+				getEmptyClusters(centroids):
+				getRandomEmptyClusters(k);
 		do
 		{
 			clusters.forEach(DataSet::removeAll);
@@ -88,6 +95,14 @@ public class DataSet implements Iterable<DataRow>
 		}
 		while (recomputeCentroids(clusters));
 		return new ClusterSet(clusters);
+	}
+
+	public Set<Cluster> getEmptyClusters(List<Row> centroids)
+	{
+		return centroids
+				.stream()
+				.map(r -> new Cluster(this, r))
+				.collect(Collectors.toSet());
 	}
 
 	private Set<Cluster> getRandomEmptyClusters(int k)
