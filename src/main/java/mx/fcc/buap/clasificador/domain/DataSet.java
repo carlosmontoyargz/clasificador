@@ -33,6 +33,7 @@ public class DataSet implements Iterable<DataRow>
 	private Row rangeRow;
 
 	private int precision = 25;
+
 	private final AtomicInteger indiceGenerator = new AtomicInteger(0);
 	private static final AtomicInteger idGenerator = new AtomicInteger(0);
 
@@ -79,9 +80,15 @@ public class DataSet implements Iterable<DataRow>
 	 * @param k El numero de clusters
 	 * @return El conjunto de clusters encontrados.
 	 */
-	public ClusterSet kMeans(int k) { return kMeans(new ClusterSet(this, k)); }
+	public ClusterSet kMeans(int k)
+	{
+		return kMeans(new ClusterSet(this, k));
+	}
 
-	public ClusterSet kMeans(Set<Row> centroids) { return kMeans(new ClusterSet(this, centroids)); }
+	public ClusterSet kMeans(Set<Row> centroids)
+	{
+		return kMeans(new ClusterSet(this, centroids));
+	}
 
 	private ClusterSet kMeans(ClusterSet clusters)
 	{
@@ -394,17 +401,14 @@ public class DataSet implements Iterable<DataRow>
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		DataSet dataRows = (DataSet) o;
+		DataSet other = (DataSet) o;
 
-		return id == dataRows.id;
+		return id == other.id;
 
 	}
 
 	@Override
-	public int hashCode()
-	{
-		return id;
-	}
+	public int hashCode() { return id; }
 
 	/**
 	 * Representa este DataSet en un String

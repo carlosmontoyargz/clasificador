@@ -27,19 +27,7 @@ public class ClusterSet implements Iterable<Cluster>
 	public ClusterSet(DataSet dataSet, int k)
 	{
 		this.dataSet = dataSet;
-
-		int dataSetSize = dataSet.getRowSize();
-		if (dataSetSize < k)
-			this.clusters = Collections.emptySet();
-		else
-		{
-			Set<Row> centroids = new HashSet<>(k);
-			while (centroids.size() < k)
-				centroids
-						.add(dataSet
-								.get( (int) (Math.random() * dataSetSize)) );
-			this.clusters = createEmptyClusters(centroids);
-		}
+		this.clusters = createEmptyClusters(getRandomCentroids(k));
 	}
 
 	private Set<Cluster> createEmptyClusters(Set<Row> centroids)
@@ -51,6 +39,19 @@ public class ClusterSet implements Iterable<Cluster>
 					.stream()
 					.map(r -> new Cluster(dataSet, r))
 					.collect(Collectors.toSet());
+	}
+
+	private Set<Row> getRandomCentroids(int k)
+	{
+		int dataSetSize = dataSet.getRowSize();
+		if (dataSetSize < k) return Collections.emptySet();
+
+		Set<Row> centroids = new HashSet<>(k);
+		while (centroids.size() < k)
+			centroids
+					.add(dataSet
+							.get( (int) (Math.random() * dataSetSize)) );
+		return centroids;
 	}
 
 	public void assignRowToClosestCluster(DataRow row)
