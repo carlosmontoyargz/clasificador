@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
-
 @Controller
 public class FileUploadController {
 
@@ -24,7 +22,7 @@ public class FileUploadController {
 	}
 
 	@GetMapping("/")
-	public String listUploadedFiles() throws IOException
+	public String listUploadedFiles()
 	{
 		return "forma-subida";
 	}

@@ -57,7 +57,6 @@ public class DataRow extends Row
 							.add(newMin)
 							.stripTrailingZeros();
 		}
-
 		return new DataRow(dataSet, normalized, indice);
 	}
 

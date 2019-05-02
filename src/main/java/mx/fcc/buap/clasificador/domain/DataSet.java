@@ -61,8 +61,7 @@ public class DataSet implements Iterable<DataRow>
 	{
 		if (r.size() == columnSize)
 		{
-			rows.add(r instanceof DataRow ?
-					(DataRow) r :
+			rows.add(r instanceof DataRow ? (DataRow) r :
 					new DataRow(r, this, indiceGenerator.incrementAndGet()));
 			minRow = null;
 			maxRow = null;
@@ -228,13 +227,12 @@ public class DataSet implements Iterable<DataRow>
 		for (int i = 0; i < columnSize; i++)
 			avg[i] = isNominal(i) ? mode(i) :
 					average(i);
-
-		log.debug("average: {}", Arrays.toString(avg));
 		return new Row(avg);
 	}
 
 	private BigDecimal average(int column)
 	{
+		if (rows.size() == 0) return ZERO;
 		return getColumnStream(column)
 				.reduce(ZERO, BigDecimal::add)
 				.divide(new BigDecimal(rows.size()),

@@ -34,12 +34,12 @@ public class FileSystemStorageService implements StorageService {
 		String filename = StringUtils.cleanPath(file.getOriginalFilename());
 		try {
 			if (file.isEmpty()) {
-				throw new StorageException("Failed to store empty file " + filename);
+				throw new StorageException("Failed to store empty files " + filename);
 			}
 			if (filename.contains("..")) {
 				// This is a security check
 				throw new StorageException(
-						"Cannot store file with relative path outside current directory "
+						"Cannot store files with relative path outside current directory "
 								+ filename);
 			}
 			try (InputStream inputStream = file.getInputStream()) {
@@ -48,7 +48,7 @@ public class FileSystemStorageService implements StorageService {
 			}
 		}
 		catch (IOException e) {
-			throw new StorageException("Failed to store file " + filename, e);
+			throw new StorageException("Failed to store files " + filename, e);
 		}
 	}
 
@@ -62,7 +62,7 @@ public class FileSystemStorageService implements StorageService {
 			writer.close();
 		}
 		catch (IOException e) {
-			throw new StorageException("Failed to store file " + filename, e);
+			throw new StorageException("Failed to store files " + filename, e);
 		}
 	}
 
@@ -94,12 +94,12 @@ public class FileSystemStorageService implements StorageService {
 			}
 			else {
 				throw new StorageFileNotFoundException(
-						"Could not read file: " + filename);
+						"Could not read files: " + filename);
 
 			}
 		}
 		catch (MalformedURLException e) {
-			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+			throw new StorageFileNotFoundException("Could not read files: " + filename, e);
 		}
 	}
 

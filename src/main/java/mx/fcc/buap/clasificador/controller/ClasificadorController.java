@@ -47,22 +47,25 @@ public class ClasificadorController
 	                                          @RequestParam("filename") String filename,
 	                                          RedirectAttributes redirectAttributes)
 	{
-		MultipartFile centroids = form.getFile();
-		if (centroids != null)
+		MultipartFile centroids = form.getCentroids();
+		if (centroids != null && !centroids.isEmpty())
 		{
 			storageService.store(centroids);
-			redirectAttributes.addAttribute("cabecera", centroids.getOriginalFilename());
+			redirectAttributes.addAttribute("centroids", centroids.getOriginalFilename());
+		}
+		else
+		{
+			redirectAttributes.addAttribute("numberOfClusters", form.getNumberOfClusters());
 		}
 		redirectAttributes.addAttribute("method", form.getMethod());
-		redirectAttributes.addAttribute("numberOfClusters", form.getNumberOfClusters());
 		return "redirect:/clasificador/" + filename;
 	}
 
 	@GetMapping("/{filename}")
 	public String clasificar(@PathVariable String filename,
 	                         @RequestParam String method,
-	                         @RequestParam int numberOfClusters,
-	                        // @RequestParam(required = false) String cabecera,
+	                         @RequestParam(required = false) Integer numberOfClusters,
+	                         @RequestParam(required = false) String centroids,
 	                         Model model)
 	{
 		try
@@ -83,14 +86,17 @@ public class ClasificadorController
 			else return "";
 
 			ClusterSet clusters;
-			/*if (cabecera != null && cabecera.length() > 0)
-			{
-				List<Row> centroids = dataSetService
-						.convertToRow(storageService.loadAsResource(cabecera).getFile().toPath());
-				clusters = normalized.kMeans(numberOfClusters, centroids);
+			if (centroids != null)
+			{;
+				clusters = normalized
+						.kMeans(dataSetService
+								.convertToRow(storageService
+										.loadAsResource(centroids)
+										.getFile().toPath()));
 			}
-			else*/
-				clusters = normalized.kMeans(numberOfClusters);
+			else
+				clusters = normalized
+						.kMeans(numberOfClusters);
 
 			log.info("------------------- k-means ---------------------------------");
 			log.info(clusters);
@@ -102,7 +108,7 @@ public class ClasificadorController
 			model.addAttribute("clusters", clusters.toJson());
 		}
 		catch (IOException e) {
-			throw new StorageFileNotFoundException("Could not read file: " + filename, e);
+			throw new StorageFileNotFoundException("Could not read files: " + filename, e);
 		}
 		return "resultado-clasificacion";
 	}

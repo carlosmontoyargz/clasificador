@@ -12,5 +12,5 @@ public class ClusterForm
 {
 	private String method;
 	private int numberOfClusters;
-	private MultipartFile file;
+	private MultipartFile centroids;
 }

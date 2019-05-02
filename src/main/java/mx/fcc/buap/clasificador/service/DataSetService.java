@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 /**
  * @author Carlos Montoya
@@ -57,15 +57,15 @@ public class DataSetService
 		return dataSet;
 	}
 
-	public List<Row> convertToRow(Path path) throws IOException
+	public Set<Row> convertToRow(Path path) throws IOException
 	{
-		List<Row> result = new ArrayList<>();
+		Set<Row> result = new HashSet<>();
 		for (String s : Files.readAllLines(path))
 			result.add(new Row(
 					Arrays.stream(s.split(separator))
 							.map(this::convert)
 							.toArray(BigDecimal[]::new)));
-		log.info(result);
+		log.info("Centroides leidos:\n{}", result);
 		return result;
 	}
 
