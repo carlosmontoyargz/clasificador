@@ -27,7 +27,7 @@ public class Cluster extends DataSet
 
 	public BigDecimal distanceToCentroid(DataRow row)
 	{
-		return row.distance(centroid, getPrecision());
+		return row.distance(centroid);
 	}
 
 	public BigDecimal meanDistanceToCentroid()

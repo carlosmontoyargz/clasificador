@@ -79,15 +79,9 @@ public class DataSet implements Iterable<DataRow>
 	 * @param k El numero de clusters
 	 * @return El conjunto de clusters encontrados.
 	 */
-	public ClusterSet kMeans(int k)
-	{
-		return kMeans(new ClusterSet(this, k));
-	}
+	public ClusterSet kMeans(int k) { return kMeans(new ClusterSet(this, k)); }
 
-	public ClusterSet kMeans(Set<Row> centroids)
-	{
-		return kMeans(new ClusterSet(this, centroids));
-	}
+	public ClusterSet kMeans(Set<Row> centroids) { return kMeans(new ClusterSet(this, centroids)); }
 
 	private ClusterSet kMeans(ClusterSet clusters)
 	{
@@ -117,7 +111,7 @@ public class DataSet implements Iterable<DataRow>
 				attributeType,
 				rows.stream()
 						.map(row -> row
-								.minmax(minRow, maxRow, newMin, newMax, precision))
+								.minmax(minRow, maxRow, newMin, newMax))
 						.collect(Collectors.toList()));
 		log.info("min-max:\n{}", resultSet);
 		return resultSet;
@@ -208,7 +202,7 @@ public class DataSet implements Iterable<DataRow>
 				attributeType,
 				rows.stream()
 						.map(row -> row
-								.zScore(average, standardDeviation, precision))
+								.zScore(average, standardDeviation))
 						.collect(Collectors.toList()));
 		log.info("z-score:\n{}", resultSet);
 		return resultSet;

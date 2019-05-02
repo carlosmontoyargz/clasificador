@@ -42,7 +42,7 @@ public class DataRow extends Row
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow minmax(Row minRow, Row maxRow, BigDecimal newMin, BigDecimal newMax, int precision)
+	public DataRow minmax(Row minRow, Row maxRow, BigDecimal newMin, BigDecimal newMax)
 	{
 		BigDecimal diffNewMinNewMax = newMax.subtract(newMin);
 		BigDecimal[] normalized = new BigDecimal[size()];
@@ -52,7 +52,7 @@ public class DataRow extends Row
 			normalized[i] = dataSet.isNominal(i) ? attributes[i] :
 					attributes[i]
 							.subtract(minRow.attributes[i])
-							.divide(diffMinMax, precision, RoundingMode.HALF_UP)
+							.divide(diffMinMax, dataSet.getPrecision(), RoundingMode.HALF_UP)
 							.multiply(diffNewMinNewMax)
 							.add(newMin)
 							.stripTrailingZeros();
@@ -67,14 +67,14 @@ public class DataRow extends Row
 	 *
 	 * @return Un DataRow nuevo con el resultado de la normalizacion
 	 */
-	public DataRow zScore(Row avg, Row stddev, int precision)
+	public DataRow zScore(Row avg, Row stddev)
 	{
 		BigDecimal[] normalized = new BigDecimal[size()];
 		for (int i = 0; i < normalized.length; i++)
 			normalized[i] = dataSet.isNominal(i) || ZERO.equals(stddev.attributes[i]) ? attributes[i] :
 					attributes[i]
 							.subtract(avg.attributes[i])
-							.divide(stddev.attributes[i], precision, RoundingMode.HALF_UP)
+							.divide(stddev.attributes[i], dataSet.getPrecision(), RoundingMode.HALF_UP)
 							.stripTrailingZeros();
 
 		return new DataRow(dataSet, normalized, indice);
@@ -98,12 +98,16 @@ public class DataRow extends Row
 		return new DataRow(dataSet, normalized, indice);
 	}
 
-	public BigDecimal distance(Row other, int precision)
+	public BigDecimal distance(Row other)
 	{
-		BigDecimal r = ZERO;
+		BigDecimal squaredDistancesSum = ZERO;
 		for (int i = 0; i < attributes.length; i++)
-			r = r.add( distance(i, other.attributes[i]).pow(2) );
-		return MathTools.sqrt(r, precision);
+			squaredDistancesSum = squaredDistancesSum
+					.add(
+							distance(i, other.attributes[i])
+									.pow(2));
+		return MathTools
+				.sqrt(squaredDistancesSum, dataSet.getPrecision());
 	}
 
 	private BigDecimal distance(int column, BigDecimal other)
