@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mx.fcc.buap.clasificador.domain.ClusterSet;
 import mx.fcc.buap.clasificador.domain.DataSet;
-import mx.fcc.buap.clasificador.domain.Row;
 import mx.fcc.buap.clasificador.dto.ClusterForm;
 import mx.fcc.buap.clasificador.service.DataSetService;
 import mx.fcc.buap.clasificador.storage.StorageFileNotFoundException;
@@ -18,7 +17,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * @author Carlos Montoya
@@ -64,7 +62,7 @@ public class ClasificadorController
 	public String clasificar(@PathVariable String filename,
 	                         @RequestParam String method,
 	                         @RequestParam int numberOfClusters,
-	                         @RequestParam(required = false) String cabecera,
+	                        // @RequestParam(required = false) String cabecera,
 	                         Model model)
 	{
 		try
@@ -85,13 +83,13 @@ public class ClasificadorController
 			else return "";
 
 			ClusterSet clusters;
-			if (cabecera != null && cabecera.length() > 0)
+			/*if (cabecera != null && cabecera.length() > 0)
 			{
 				List<Row> centroids = dataSetService
 						.convertToRow(storageService.loadAsResource(cabecera).getFile().toPath());
 				clusters = normalized.kMeans(numberOfClusters, centroids);
 			}
-			else
+			else*/
 				clusters = normalized.kMeans(numberOfClusters);
 
 			log.info("------------------- k-means ---------------------------------");

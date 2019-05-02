@@ -21,7 +21,7 @@ public class ClasificadorApplication
 	@Bean
 	CommandLineRunner init(StorageService storageService) {
 		return (args) -> {
-			//storageService.removeAll();
+			//storageService.clear();
 			storageService.init();
 		};
 	}

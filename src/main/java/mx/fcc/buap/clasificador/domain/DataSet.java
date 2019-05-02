@@ -71,6 +71,8 @@ public class DataSet implements Iterable<DataRow>
 			log.error("La instancia {} tiene un numero incorrecto de atributos: {}", r, r.size());
 	}
 
+	public Row get(int i) { return rows.get(i); }
+
 	/**
 	 * Clasifica este DataSet mediante el metodo k-means.
 	 *
@@ -79,76 +81,23 @@ public class DataSet implements Iterable<DataRow>
 	 */
 	public ClusterSet kMeans(int k)
 	{
-		return kMeans(k, null);
+		return kMeans(new ClusterSet(this, k));
 	}
 
-	public ClusterSet kMeans(int k, List<Row> centroids)
+	public ClusterSet kMeans(Set<Row> centroids)
 	{
-		Set<Cluster> clusters = centroids != null && centroids.size() > 0 ?
-				getEmptyClusters(centroids):
-				getRandomEmptyClusters(k);
+		return kMeans(new ClusterSet(this, centroids));
+	}
+
+	private ClusterSet kMeans(ClusterSet clusters)
+	{
 		do
 		{
-			clusters.forEach(DataSet::removeAll);
-			rows.forEach(r -> assignRowToClosestCluster(r, clusters));
-			clusters.forEach(Cluster::recomputeCentroid);
+			clusters.clearAll();
+			rows.forEach(clusters::assignRowToClosestCluster);
 		}
-		while (recomputeCentroids(clusters));
-		return new ClusterSet(clusters);
-	}
-
-	public Set<Cluster> getEmptyClusters(List<Row> centroids)
-	{
-		return centroids
-				.stream()
-				.map(r -> new Cluster(this, r))
-				.collect(Collectors.toSet());
-	}
-
-	private Set<Cluster> getRandomEmptyClusters(int k)
-	{
-		if (rows.size() < k) return Collections.emptySet();
-
-		Set<DataRow> centroids = new HashSet<>(k);
-		while (centroids.size() < k)
-				centroids.add(rows
-						.get((int) (Math.random() * rows.size())));
-		return centroids
-				.stream()
-				.map(r -> new Cluster(this, r))
-				.collect(Collectors.toSet());
-	}
-
-	private void assignRowToClosestCluster(DataRow row, Set<Cluster> clusters)
-	{
-		Cluster nearest = null;
-		BigDecimal min = BigDecimal.valueOf(Long.MAX_VALUE);
-		for (Cluster c : clusters)
-		{
-			BigDecimal distance = c.distanceToCentroid(row);
-			if (distance.compareTo(min) < 0)
-			{
-				nearest = c;
-				min = distance;
-			}
-		}
-		if (nearest != null) nearest.add(row);
-	}
-
-	/**
-	 * Recalcula los centroides de los clusters especificados, y retorna true
-	 * si cambio alguno de los centroides.
-	 *
-	 * @param clusters El conjunto de clusters
-	 * @return si alguno de los centroides cambio
-	 */
-	private boolean recomputeCentroids(Set<Cluster> clusters)
-	{
-		return clusters.stream()
-				.map(Cluster::recomputeCentroid)
-				.filter(b -> b)
-				.findFirst()
-				.orElse(false);
+		while (clusters.recomputeCentroids());
+		return clusters;
 	}
 
 	/**
@@ -424,7 +373,7 @@ public class DataSet implements Iterable<DataRow>
 
 	public int getRowSize() { return rows.size(); }
 
-	public void removeAll() { rows.removeIf(r -> true); }
+	public void clear() { rows.removeIf(r -> true); }
 
 	/**
 	 * Retorna true si la columna especificada es atributo de tipo numerico.
